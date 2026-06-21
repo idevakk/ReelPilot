@@ -271,7 +271,7 @@ def normalize_hook(hook_path: Path, dest: Path) -> Path:
         "ffmpeg", "-y",
         "-i", str(hook_path),
         "-vf", vf,
-        "-ac", "2", "-ar", "44100", "-c:a", "aac",
+        "-ac", "2", "-ar", "48000", "-c:a", "aac", "-b:a", "320k",
         *ENCODE_ARGS,
         str(dest),
     ], desc="Normalizing Hook", total_duration=5.0)
