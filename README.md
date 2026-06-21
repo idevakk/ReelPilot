@@ -35,6 +35,10 @@ Optional flags: `--voice aura-orion-en`, `--out path/to/out.mp4`, `--force`.
 ## Environment variables
 
 - `OPENAI_API_KEY`, `OPENAI_BASE_URL`, `OPENAI_MODEL` — script + rerank endpoint
+- `OPENAI_REASONING_EFFORT` — configures the reasoning budget for supported OpenAI models (e.g., `low`, `medium`, `high`)
+- `GEMINI_API_KEY`, `GEMINI_BASE_URL` — Gemini API endpoint for vision analysis and native script writing
+- `USE_GEMINI_SCRIPT` — Set to `true` to use Gemini directly for script generation instead of the default OpenAI endpoint
+- `GEMINI_VISION_MODEL`, `GEMINI_SCRIPT_MODEL` — Customizable Gemini models
 - `DEEPGRAM_API_KEY` — Aura TTS
 - `PEXELS_API_KEY` — B-roll
 - `PIXABAY_API_KEY` — background music (optional; otherwise a synthesized tone is used)
