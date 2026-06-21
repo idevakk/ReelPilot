@@ -144,12 +144,12 @@ def by_name(name: str) -> Hook:
 
 import re
 
-_scraped_hooks_cache: list[str] = []
+from . import cache
 
-def _scrape_hooks() -> list[str]:
-    global _scraped_hooks_cache
-    if _scraped_hooks_cache:
-        return _scraped_hooks_cache
+def _scrape_hooks() -> None:
+    # Only scrape if DB is empty to avoid hitting the network every run
+    if cache.get_stats().get("hooks", 0) > 0:
+        return
     
     urls = [
         "https://transitionalhooks.com/social-media-video-hook-library/",
@@ -157,6 +157,10 @@ def _scrape_hooks() -> list[str]:
         "https://onlinepath.com.au/blog/100-best-viral-video-hooks-2024/"
     ]
     videos = set()
+    # Pre-seed with catalog
+    for h in CATALOG:
+        videos.add(h.url)
+
     for url in urls:
         try:
             r = requests.get(url, timeout=10)
@@ -164,14 +168,17 @@ def _scrape_hooks() -> list[str]:
             videos.update(found)
         except Exception:
             pass
-    _scraped_hooks_cache = list(videos)
-    return _scraped_hooks_cache
+    
+    if videos:
+        cache.store_hook_urls(list(videos))
+
 
 def random_hook() -> Hook:
-    """Pick a random hook from the catalog or scraped from transitionalhooks.com."""
-    scraped = _scrape_hooks()
-    if scraped:
-        url = random.choice(scraped)
+    """Pick a random hook from the catalog or scraped from the SQLite DB."""
+    _scrape_hooks()
+    url = cache.get_random_hook_url()
+    
+    if url:
         name = url.split("/")[-1].replace(".mp4", "")
         # Try to find it in the local catalog first to get better topic seeds
         for h in CATALOG:
@@ -195,18 +202,31 @@ def cache_path(hook: Hook) -> Path:
 
 
 def is_cached(hook: Hook) -> bool:
+    # Also verify it's registered in the DB
+    db_path = cache.get_hook_path(hook.url)
+    if db_path and db_path.exists():
+        return True
+    
     p = cache_path(hook)
     return p.exists() and p.stat().st_size > 1024
 
 
 def ensure(hook: Hook, force: bool = False) -> Path:
     """Download hook MP4 if not already cached. Returns local path."""
+    if not force:
+        db_path = cache.get_hook_path(hook.url)
+        if db_path and db_path.exists():
+            return db_path
+            
     dest = cache_path(hook)
     if not force and is_cached(hook):
+        cache.update_hook_path(hook.url, dest)
         return dest
+        
     sys.stdout.write(f"Downloading hook {hook.name} -> {dest}\n")
     sys.stdout.flush()
     stream_download(hook.url, dest, timeout=60)
+    cache.update_hook_path(hook.url, dest)
     return dest
 
 

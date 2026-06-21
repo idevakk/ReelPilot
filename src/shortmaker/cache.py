@@ -71,6 +71,13 @@ def _init_tables(conn: sqlite3.Connection) -> None:
             created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
         CREATE INDEX IF NOT EXISTS idx_tts_hash ON tts(text_hash);
+
+        CREATE TABLE IF NOT EXISTS hooks (
+            id          INTEGER PRIMARY KEY AUTOINCREMENT,
+            url         TEXT    NOT NULL UNIQUE,
+            file_path   TEXT,
+            created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
     """)
     conn.commit()
 
@@ -86,6 +93,38 @@ class CachedAsset:
     duration_s: float | None
     query: str
     metadata: dict
+
+
+# ---------------------------------------------------------------------------
+# Hooks
+# ---------------------------------------------------------------------------
+
+def store_hook_urls(urls: list[str]) -> None:
+    conn = _conn()
+    conn.executemany(
+        "INSERT OR IGNORE INTO hooks (url) VALUES (?)",
+        [(u,) for u in urls]
+    )
+    conn.commit()
+
+def get_random_hook_url() -> str | None:
+    conn = _conn()
+    row = conn.execute("SELECT url FROM hooks ORDER BY RANDOM() LIMIT 1").fetchone()
+    return row["url"] if row else None
+
+def get_hook_path(url: str) -> Path | None:
+    conn = _conn()
+    row = conn.execute("SELECT file_path FROM hooks WHERE url = ?", (url,)).fetchone()
+    if row and row["file_path"]:
+        p = Path(row["file_path"])
+        if p.exists() and p.stat().st_size > 1024:
+            return p
+    return None
+
+def update_hook_path(url: str, path: Path) -> None:
+    conn = _conn()
+    conn.execute("UPDATE hooks SET file_path = ? WHERE url = ?", (str(path), url))
+    conn.commit()
 
 
 # ---------------------------------------------------------------------------
@@ -257,7 +296,7 @@ def store_tts(
 def get_stats() -> dict[str, int]:
     conn = _conn()
     stats: dict[str, int] = {}
-    for table in ("broll", "music", "tts"):
+    for table in ("broll", "music", "tts", "hooks"):
         row = conn.execute(f"SELECT COUNT(*) as cnt FROM {table}").fetchone()
         stats[table] = row["cnt"] if row else 0
     return stats
@@ -265,6 +304,6 @@ def get_stats() -> dict[str, int]:
 
 def clear_all() -> None:
     conn = _conn()
-    for table in ("broll", "music", "tts"):
+    for table in ("broll", "music", "tts", "hooks"):
         conn.execute(f"DELETE FROM {table}")  # noqa: S608
     conn.commit()
