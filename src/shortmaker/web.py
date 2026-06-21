@@ -11,7 +11,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 import uvicorn
 
-from .config import OUTPUT_DIR, MUSIC_LIBRARY_DIR
+from .config import OUTPUT_DIR, MUSIC_LIBRARY_DIR, STATIC_DIR
 
 app = FastAPI(title="ShortMaker Web UI")
 
@@ -28,6 +28,9 @@ app.mount("/out", StaticFiles(directory=str(OUTPUT_DIR)), name="out")
 # Mount the music library to serve audio for playback
 MUSIC_LIBRARY_DIR.mkdir(parents=True, exist_ok=True)
 app.mount("/music", StaticFiles(directory=str(MUSIC_LIBRARY_DIR)), name="music")
+
+STATIC_DIR.mkdir(parents=True, exist_ok=True)
+app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 JOBS_DIR = OUTPUT_DIR / "_jobs"
 JOBS_DIR.mkdir(parents=True, exist_ok=True)
