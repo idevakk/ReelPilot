@@ -90,6 +90,7 @@ def _make_one_video(
     voice: str,
     out: Path | None,
     force_redownload: bool,
+    duration: int = 30,
     video_num: int = 1,
 ) -> Path:
     """Core pipeline: generate one video and return the output path."""
@@ -366,6 +367,7 @@ def main(
             voice=voice,
             out=out_i,
             force_redownload=force_redownload,
+            duration=duration,
             video_num=i + 1,
         )
         outputs.append(result)
