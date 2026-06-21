@@ -188,7 +188,36 @@
         .video-meta {
             font-size: 0.8rem;
             color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+
+        .video-stats {
+            background: rgba(0,0,0,0.3);
+            border-radius: 6px;
+            padding: 0.75rem;
             margin-bottom: 1rem;
+            font-size: 0.75rem;
+            color: #cbd5e1;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-value {
+            font-weight: 600;
+            color: var(--primary-hover);
         }
 
         .download-btn {
@@ -290,6 +319,20 @@
             
             data.videos.forEach(v => {
                 const date = new Date(v.created_at * 1000).toLocaleString();
+                
+                // Parse stats from sidecar
+                let timeTaken = '-', totalCost = '-', llmCost = '-', deepgramCost = '-';
+                if (v.sidecar) {
+                    const matchTime = v.sidecar.match(/- Total Time Taken:\s*(.+)/);
+                    if (matchTime) timeTaken = matchTime[1];
+                    const matchTotal = v.sidecar.match(/- Total Pipeline Cost:\s*(.+)/);
+                    if (matchTotal) totalCost = matchTotal[1];
+                    const matchLlm = v.sidecar.match(/- LLM Estimated Cost:\s*(.+)/);
+                    if (matchLlm) llmCost = matchLlm[1];
+                    const matchVoice = v.sidecar.match(/- Deepgram Voice Cost:\s*(.+)/);
+                    if (matchVoice) deepgramCost = matchVoice[1];
+                }
+
                 const card = document.createElement('div');
                 card.className = 'video-card';
                 card.innerHTML = `
@@ -297,6 +340,12 @@
                     <div class="video-info">
                         <div class="video-title" title="${v.id}">${v.id.replace(/_\d+$/, '')}</div>
                         <div class="video-meta">${date}</div>
+                        <div class="video-stats">
+                            <div class="stat-item"><span class="stat-label">Time</span><span class="stat-value">${timeTaken}</span></div>
+                            <div class="stat-item"><span class="stat-label">Cost</span><span class="stat-value">${totalCost}</span></div>
+                            <div class="stat-item"><span class="stat-label">LLM</span><span class="stat-value">${llmCost}</span></div>
+                            <div class="stat-item"><span class="stat-label">Voice</span><span class="stat-value">${deepgramCost}</span></div>
+                        </div>
                         <a href="${v.url}" download class="download-btn">Download MP4</a>
                     </div>
                 `;
