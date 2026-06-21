@@ -57,7 +57,7 @@ Return strict JSON with this shape:
       "role": "body",
       "narration": "Tell the story naturally. Give genuinely interesting information.",
       "broll_keywords": ["keyword1", "keyword2"],
-      "target_seconds": 5.0,
+      "target_seconds": 6.0,
       "energy": "medium",
       "transition_hint": "auto",
       "caption_emphasis": ["key_word"],
@@ -65,10 +65,30 @@ Return strict JSON with this shape:
     }},
     {{
       "role": "body",
-      "narration": "...",
+      "narration": "Continue the story naturally. Add depth or unexpected twists.",
       "broll_keywords": ["..."],
-      "target_seconds": 5.0,
+      "target_seconds": 6.0,
       "energy": "medium",
+      "transition_hint": "auto",
+      "caption_emphasis": [],
+      "speed": "normal"
+    }},
+    {{
+      "role": "body",
+      "narration": "Keep building momentum. Provide more details.",
+      "broll_keywords": ["..."],
+      "target_seconds": 6.0,
+      "energy": "medium",
+      "transition_hint": "auto",
+      "caption_emphasis": [],
+      "speed": "normal"
+    }},
+    {{
+      "role": "body",
+      "narration": "Reach the climax or the most interesting part of the fact.",
+      "broll_keywords": ["..."],
+      "target_seconds": 6.0,
+      "energy": "high",
       "transition_hint": "auto",
       "caption_emphasis": [],
       "speed": "normal"
@@ -77,7 +97,7 @@ Return strict JSON with this shape:
       "role": "cta",
       "narration": "Wrap up with a thought-provoking final thought. Do NOT ask cheesy questions or say 'follow for more'.",
       "broll_keywords": ["keyword1", "keyword2"],
-      "target_seconds": 3.0,
+      "target_seconds": 4.0,
       "energy": "medium",
       "transition_hint": "fade",
       "caption_emphasis": [],
@@ -93,7 +113,7 @@ STORYTELLING RULES (follow ALL):
 4. B-ROLL KEYWORDS: This is critical! We download videos from Pexels using these keywords. Ensure at least one of the B-roll clips visually represents the core subject of the "{topic}". DO NOT USE abstract terms (like "mind_blown", "concept", "truth"). Use LITERAL, highly-searchable visual nouns and actions (e.g., "coffee cup", "people walking", "storm clouds", "scientist lab"). We prefer videos, so use highly visual terms.
 5. FLOW: Make the transitions between beats smooth and effortless. Don't sound rigid.
 6. energy: "high" for shocking/funny/exciting, "medium" for storytelling/reveals, "low" for emotional pauses.
-7. Total duration 25-35 seconds. Body 4-6s each, CTA 2-3s.
+7. Total duration 40-60 seconds. Include enough body beats to fill this duration. Body beats should be 5-8s each, CTA 3-5s.
 8. broll_keywords: 2-3 specific LITERAL VISUAL terms for each beat. Make sure the keywords relate directly to the topic and the narration at that exact moment.
 """
 
