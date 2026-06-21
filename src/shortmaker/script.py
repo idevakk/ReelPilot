@@ -90,11 +90,11 @@ STORYTELLING RULES (follow ALL):
 1. HOOK SEPARATION: The hook video plays FIRST, untouched. Your script begins IMMEDIATELY AFTER the hook finishes. Find a creative angle to match the hook's visual perspective in your first sentence.
 2. NARRATION: Keep sentences flowing naturally. Sound like a real person talking to a friend. No unnatural marketing speak or cliché "curiosity gaps".
 3. STORY ARC: Build interest naturally. Give genuinely fascinating facts or tell a compelling story.
-4. B-ROLL KEYWORDS: This is critical! We download videos from Pexels using these keywords. DO NOT USE abstract terms (like "mind_blown", "concept", "truth"). Use LITERAL, highly-searchable visual nouns and actions (e.g., "coffee cup", "people walking", "storm clouds", "scientist lab"). We prefer videos, so use highly visual terms.
+4. B-ROLL KEYWORDS: This is critical! We download videos from Pexels using these keywords. Ensure at least one of the B-roll clips visually represents the core subject of the "{topic}". DO NOT USE abstract terms (like "mind_blown", "concept", "truth"). Use LITERAL, highly-searchable visual nouns and actions (e.g., "coffee cup", "people walking", "storm clouds", "scientist lab"). We prefer videos, so use highly visual terms.
 5. FLOW: Make the transitions between beats smooth and effortless. Don't sound rigid.
 6. energy: "high" for shocking/funny/exciting, "medium" for storytelling/reveals, "low" for emotional pauses.
 7. Total duration 25-35 seconds. Body 4-6s each, CTA 2-3s.
-8. broll_keywords: 2-3 specific LITERAL VISUAL terms for each beat.
+8. broll_keywords: 2-3 specific LITERAL VISUAL terms for each beat. Make sure the keywords relate directly to the topic and the narration at that exact moment.
 """
 
 # ─── topic generation prompt ─────────────────────────────────────────────
