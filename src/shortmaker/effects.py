@@ -130,6 +130,7 @@ def normalize_filter(target_dur: float,
     parts = [
         f"scale={WIDTH}:{HEIGHT}:force_original_aspect_ratio=increase",
         f"crop={WIDTH}:{HEIGHT}",
+        f"fps={FPS}",
     ]
     if is_image:
         parts.append(ken_burns_filter(target_dur, motion))
