@@ -105,14 +105,22 @@ def _offline_tone(seconds: float = 30.0) -> Path:
 
 def fetch(query: str, api_key: str | None,
           target_seconds: float = 30.0,
-          mood: str | None = None) -> Path:
+          mood: str | None = None,
+          bgm_file: str | None = None) -> Path:
     """Fetch a music clip. Priority order:
-
+    
+    0. Explicit bgm_file (if provided)
     1. Local library (``assets/music/library/``)
     2. SQLite cache (previously downloaded)
     3. Pixabay API
     4. Synthesised fallback tone
     """
+    
+    # 0. Explicit request
+    if bgm_file and bgm_file != "auto":
+        explicit_path = MUSIC_LIBRARY_DIR / bgm_file
+        if explicit_path.exists():
+            return explicit_path
 
     # 1. Local library
     lib_track = _pick_from_library(query)

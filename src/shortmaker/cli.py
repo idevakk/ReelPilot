@@ -91,6 +91,7 @@ def _make_one_video(
     out: Path | None,
     force_redownload: bool,
     duration: int = 30,
+    bgm: str | None = None,
     video_num: int = 1,
 ) -> Path:
     """Core pipeline: generate one video and return the output path."""
@@ -207,6 +208,7 @@ def _make_one_video(
         music_path = music.fetch(
             topic, s.pixabay_api_key,
             target_seconds=script_obj.target_duration,
+            bgm_file=bgm,
         )
     console.print(f"[cyan]Music:[/cyan] {music_path.name}")
 
@@ -284,6 +286,10 @@ def main(
     duration: int = typer.Option(
         30, "--duration", "-d",
         help="Target minimum duration in seconds (30 to 60).",
+    ),
+    bgm: str = typer.Option(
+        "auto", "--bgm", "-m",
+        help="Background music: 'auto' (random/download) or specific filename.",
     ),
     out: Optional[Path] = typer.Option(
         None, "--out", "-o",
@@ -368,6 +374,7 @@ def main(
             out=out_i,
             force_redownload=force_redownload,
             duration=duration,
+            bgm=bgm,
             video_num=i + 1,
         )
         outputs.append(result)

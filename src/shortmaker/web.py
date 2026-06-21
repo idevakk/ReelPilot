@@ -107,6 +107,7 @@ class GenerateRequest(BaseModel):
     voice: str = "aura-2-luna-en"
     duration: int = 30
     engine: str = "intel"
+    bgm: str = "auto"
 
 def run_generation(job_id: str, req: GenerateRequest):
     jobs[job_id] = {"status": "running"}
@@ -122,7 +123,8 @@ def run_generation(job_id: str, req: GenerateRequest):
     cmd.extend([
         "--hook", req.hook,
         "--voice", req.voice,
-        "--duration", str(req.duration)
+        "--duration", str(req.duration),
+        "--bgm", req.bgm
     ])
     
     with open(log_file, "w", encoding="utf-8") as f:

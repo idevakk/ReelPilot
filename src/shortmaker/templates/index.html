@@ -319,6 +319,14 @@
             </select>
         </div>
 
+        <div class="form-group">
+            <label for="bgm">Background Music</label>
+            <select id="bgm">
+                <option value="auto">Auto (Pixabay / Random)</option>
+                <!-- Music injected here via JS -->
+            </select>
+        </div>
+
         <button id="generateBtn" onclick="generateVideo()">Generate Masterpiece</button>
 
         <div class="logs-container" id="logs">Waiting to start...</div>
@@ -434,6 +442,7 @@
         const voice = document.getElementById('voice').value;
         const duration = parseInt(document.getElementById('duration').value, 10);
         const engine = document.getElementById('engine').value;
+        const bgm = document.getElementById('bgm').value;
 
         const btn = document.getElementById('generateBtn');
         const logs = document.getElementById('logs');
@@ -447,7 +456,7 @@
             const res = await fetch('/api/generate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ topic, hook, voice, duration, engine })
+                body: JSON.stringify({ topic, hook, voice, duration, engine, bgm })
             });
             const data = await res.json();
             currentJobId = data.job_id;
@@ -499,6 +508,10 @@
             const data = await res.json();
             const list = document.getElementById('musicList');
             list.innerHTML = '';
+            const bgmSelect = document.getElementById('bgm');
+            // Keep the selected value if possible
+            const currentBgm = bgmSelect.value;
+            bgmSelect.innerHTML = '<option value="auto">Auto (Pixabay / Random)</option>';
             
             if (data.music.length === 0) {
                 list.innerHTML = '<div style="color: #666; font-size: 0.9rem;">No music found. Upload some!</div>';
@@ -519,6 +532,12 @@
                     <button onclick="deleteMusic('${m.name}')" style="background: transparent; color: #ef4444; width: auto; padding: 0.25rem 0.5rem; font-size: 0.8rem;">Delete</button>
                 `;
                 list.appendChild(div);
+                
+                const opt = document.createElement('option');
+                opt.value = m.name;
+                opt.innerText = m.name;
+                if (m.name === currentBgm) opt.selected = true;
+                bgmSelect.appendChild(opt);
             });
         } catch(e) {
             console.error("Failed to fetch music", e);
