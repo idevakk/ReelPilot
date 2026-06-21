@@ -290,6 +290,10 @@ def main(
         False, "--cache-clear",
         help="Clear the asset cache and exit.",
     ),
+    web_ui: bool = typer.Option(
+        False, "--web", "-w",
+        help="Start the interactive web dashboard.",
+    ),
 ) -> None:
     """Generate viral 9:16 short MP4s.
 
@@ -304,6 +308,12 @@ def main(
     """
 
     # ── Utility commands ──
+    if web_ui:
+        from .web import start
+        console.print("[bold green]Starting Web UI on http://localhost:8000[/bold green]")
+        start()
+        return
+
     if list_hooks:
         table = Table(title="Available Hooks")
         table.add_column("Name", style="cyan")

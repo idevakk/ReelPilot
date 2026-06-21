@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShortMaker Studio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0f172a;
+            --surface: #1e293b;
+            --surface-hover: #334155;
+            --primary: #8b5cf6;
+            --primary-hover: #a78bfa;
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --danger: #ef4444;
+            --success: #10b981;
+            --radius: 12px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(12px);
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #a855f7, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+        }
+
+        main {
+            flex: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            width: 100%;
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 2rem;
+        }
+
+        .panel {
+            background: var(--surface);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            border: 1px solid rgba(255,255,255,0.05);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        h2 {
+            font-size: 1.2rem;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: rgba(0,0,0,0.2);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            color: white;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+        }
+
+        button {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, var(--primary), #6d28d9);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(139, 92, 246, 0.4);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .logs-container {
+            margin-top: 1.5rem;
+            background: #000;
+            border-radius: 8px;
+            padding: 1rem;
+            font-family: monospace;
+            font-size: 0.85rem;
+            height: 200px;
+            overflow-y: auto;
+            color: #a78bfa;
+            white-space: pre-wrap;
+            display: none;
+        }
+
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .video-card {
+            background: rgba(0,0,0,0.2);
+            border-radius: var(--radius);
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: transform 0.2s;
+        }
+
+        .video-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(255,255,255,0.1);
+        }
+
+        video {
+            width: 100%;
+            aspect-ratio: 9/16;
+            object-fit: cover;
+            background: #000;
+        }
+
+        .video-info {
+            padding: 1rem;
+        }
+
+        .video-title {
+            font-weight: 600;
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .video-meta {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+        }
+
+        .download-btn {
+            display: inline-block;
+            width: 100%;
+            text-align: center;
+            background: var(--surface-hover);
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+        }
+
+        .download-btn:hover {
+            background: var(--primary);
+        }
+
+        @media (max-width: 900px) {
+            main {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>ShortMaker Studio</h1>
+</header>
+
+<main>
+    <div class="panel">
+        <h2>Create New Video</h2>
+        
+        <div class="form-group">
+            <label for="topic">Topic</label>
+            <input type="text" id="topic" placeholder="e.g. AI is taking over coding">
+        </div>
+        
+        <div class="form-group">
+            <label for="hook">Hook Style</label>
+            <select id="hook">
+                <option value="auto">Auto (Let AI decide)</option>
+                <!-- Hooks injected here via JS -->
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="voice">Voice</label>
+            <select id="voice">
+                <option value="aura-2-luna-en">Aura Luna (Female)</option>
+                <option value="aura-2-orion-en">Aura Orion (Male)</option>
+                <option value="aura-2-stella-en">Aura Stella (Female)</option>
+            </select>
+        </div>
+
+        <button id="generateBtn" onclick="generateVideo()">Generate Masterpiece</button>
+
+        <div class="logs-container" id="logs">Waiting to start...</div>
+    </div>
+
+    <div class="panel">
+        <h2>Your Creations</h2>
+        <div class="gallery" id="gallery">
+            <!-- Videos injected here -->
+        </div>
+    </div>
+</main>
+
+<script>
+    let currentJobId = null;
+    let pollInterval = null;
+
+    async function fetchHooks() {
+        try {
+            const res = await fetch('/api/hooks');
+            const data = await res.json();
+            const hookSelect = document.getElementById('hook');
+            hookSelect.innerHTML = '';
+            data.hooks.forEach(hook => {
+                const opt = document.createElement('option');
+                opt.value = hook;
+                opt.innerText = hook.charAt(0).toUpperCase() + hook.slice(1).replace(/-/g, ' ');
+                hookSelect.appendChild(opt);
+            });
+        } catch (e) {
+            console.error("Failed to load hooks");
+        }
+    }
+
+    async function fetchVideos() {
+        try {
+            const res = await fetch('/api/videos');
+            const data = await res.json();
+            const gallery = document.getElementById('gallery');
+            gallery.innerHTML = '';
+            
+            data.videos.forEach(v => {
+                const date = new Date(v.created_at * 1000).toLocaleString();
+                const card = document.createElement('div');
+                card.className = 'video-card';
+                card.innerHTML = `
+                    <video src="${v.url}" controls preload="metadata"></video>
+                    <div class="video-info">
+                        <div class="video-title" title="${v.id}">${v.id.replace(/_\d+$/, '')}</div>
+                        <div class="video-meta">${date}</div>
+                        <a href="${v.url}" download class="download-btn">Download MP4</a>
+                    </div>
+                `;
+                gallery.appendChild(card);
+            });
+        } catch (e) {
+            console.error("Failed to load videos");
+        }
+    }
+
+    async function generateVideo() {
+        const topic = document.getElementById('topic').value;
+        const hook = document.getElementById('hook').value;
+        const voice = document.getElementById('voice').value;
+        
+        if (!topic.trim()) {
+            alert('Please enter a topic!');
+            return;
+        }
+
+        const btn = document.getElementById('generateBtn');
+        const logs = document.getElementById('logs');
+        
+        btn.disabled = true;
+        btn.innerText = 'Initializing...';
+        logs.style.display = 'block';
+        logs.innerText = 'Connecting to generation engine...';
+
+        try {
+            const res = await fetch('/api/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ topic, hook, voice })
+            });
+            const data = await res.json();
+            currentJobId = data.job_id;
+            
+            btn.innerText = 'Generating... (Takes ~1-2 mins)';
+            pollInterval = setInterval(pollStatus, 2000);
+            
+        } catch (e) {
+            btn.disabled = false;
+            btn.innerText = 'Generate Masterpiece';
+            logs.innerText = 'Failed to start generation.';
+        }
+    }
+
+    async function pollStatus() {
+        if (!currentJobId) return;
+
+        try {
+            const res = await fetch(`/api/jobs/${currentJobId}`);
+            const data = await res.json();
+            
+            const logsEl = document.getElementById('logs');
+            logsEl.innerText = data.logs || 'Waiting for logs...';
+            logsEl.scrollTop = logsEl.scrollHeight;
+
+            if (data.status === 'completed' || data.status === 'failed') {
+                clearInterval(pollInterval);
+                currentJobId = null;
+                
+                const btn = document.getElementById('generateBtn');
+                btn.disabled = false;
+                btn.innerText = 'Generate Masterpiece';
+                
+                if (data.status === 'completed') {
+                    logsEl.innerText += '\n\nDone! Successfully saved video.';
+                    fetchVideos(); // Refresh gallery
+                } else {
+                    logsEl.innerText += '\n\nGeneration failed. Check the logs.';
+                }
+            }
+        } catch (e) {
+            console.error("Poll failed");
+        }
+    }
+
+    // Initialize
+    fetchHooks();
+    fetchVideos();
+</script>
+
+</body>
+</html>
