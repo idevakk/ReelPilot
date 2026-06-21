@@ -105,8 +105,13 @@ def _make_one_video(
     # ── Hook selection ──
     if topic is None:
         # AUTO MODE: random hook → generate topic
-        with console.status("[bold green]Picking random hook..."):
-            chosen_hook = hooks.random_hook()
+        if hook_name and hook_name.lower() not in ("auto", "random"):
+            with console.status(f"[bold green]Using selected hook {hook_name}..."):
+                from .hooks import by_name
+                chosen_hook = by_name(hook_name)
+        else:
+            with console.status("[bold green]Picking random hook..."):
+                chosen_hook = hooks.random_hook()
         console.print(f"[cyan]Hook:[/cyan] {chosen_hook.name} ({chosen_hook.description})")
     else:
         # MANUAL MODE: user-provided topic
