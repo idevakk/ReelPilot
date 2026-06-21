@@ -9,3 +9,5 @@ assets/broll/
 assets/music/
 assets/fonts/
 .pytest_cache/
+assets/cache.db
+assets/cache*
