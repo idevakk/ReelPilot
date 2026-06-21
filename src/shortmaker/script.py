@@ -38,7 +38,7 @@ Write a fascinating, natural-sounding short video script.
 Topic: {topic}
 Hook clip: {hook_name} ({hook_desc})
 
-IMPORTANT: Do NOT think, reason, or explain. Output ONLY the raw JSON object.
+IMPORTANT: Do NOT think, reason, or explain. Do NOT use <thought> or <think> blocks. Output ONLY the raw JSON object immediately.
 
 Return strict JSON with this shape:
 {{
@@ -113,7 +113,7 @@ The topic MUST:
 3. Appeal to a wide audience (not niche)
 4. Match the hook's energy: {hook_desc}
 
-Return ONLY the topic text. No quotes, no explanation. 15 words max.
+Return ONLY the topic text. No quotes, no explanation. Do NOT use <thought> or <think> blocks. 15 words max.
 Examples of good viral topics:
 - "This is why cats are secretly plotting against you"
 - "The 3-second trick that makes anyone instantly like you"
