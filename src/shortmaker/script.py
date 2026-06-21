@@ -1,5 +1,9 @@
 """Script generation via an OpenAI-compatible chat-completions endpoint.
 
+v2: re-written around viral video psychology — curiosity gaps, open loops,
+pattern interrupts, and result-first hooks.  Also includes a ``generate_topic``
+helper that invents a high-virality topic from a random hook.
+
 Falls back to a small templated generator if no API key is set, so the
 pipeline still works offline (assumes the user has cached B-roll + music).
 """
@@ -13,80 +17,214 @@ from typing import Any
 from pydantic import ValidationError
 
 from .config import Settings
-from .models import Beat, Script
+from .models import Beat, Hook, Script
+
+# ─── system prompt ────────────────────────────────────────────────────────
 
 SYSTEM_PROMPT = (
-    "You are a viral short-form video script writer for TikTok/Shorts/Reels. "
-    "Write punchy 25-35 second scripts in a hook -> body -> CTA structure. "
-    "Each beat must include 2-4 short b-roll search keywords that describe the visual."
+    "You are the world's #1 viral short-form video scriptwriter. "
+    "Your videos consistently get 10M+ views on TikTok, Shorts, and Reels.\n\n"
+    "You understand viewer psychology deeply:\n"
+    "- The first 1.5 seconds determine if someone watches or scrolls\n"
+    "- Pattern interrupts every 3-5 seconds prevent scroll-off\n"
+    "- Open loops (unanswered questions) keep people watching\n"
+    "- The ending must loop back to the start for rewatches\n"
+    "- Conversational, spoken-word narration outperforms formal language\n"
+    "- Each sentence must make the viewer think 'wait, what?'\n\n"
+    "You write scripts that are IMPOSSIBLE to scroll past."
 )
 
-USER_TEMPLATE = """Write a short-form video script about this topic:
+# ─── user template ────────────────────────────────────────────────────────
+
+USER_TEMPLATE = """\
+Write a viral short-form video script.
 
 Topic: {topic}
 Hook clip: {hook_name} ({hook_desc})
 
-IMPORTANT: Do NOT think, reason, or explain. Output ONLY the raw JSON object below and nothing else.
+IMPORTANT: Do NOT think, reason, or explain. Output ONLY the raw JSON object.
 
-Return strict JSON only with this shape:
+Return strict JSON with this shape:
 {{
   "beats": [
-    {{"role": "hook_intro", "narration": "<=15 words, punchy", "broll_keywords": ["k1","k2"], "target_seconds": 3.0}},
-    {{"role": "body", "narration": "...", "broll_keywords": ["..."], "target_seconds": 5.0}},
-    {{"role": "body", "narration": "...", "broll_keywords": ["..."], "target_seconds": 5.0}},
-    {{"role": "body", "narration": "...", "broll_keywords": ["..."], "target_seconds": 5.0}},
-    {{"role": "cta", "narration": "follow for more", "broll_keywords": ["subscribe","like"], "target_seconds": 3.0}}
+    {{
+      "role": "hook_intro",
+      "narration": "<=12 words. Start with the RESULT, not the setup.",
+      "broll_keywords": ["keyword1", "keyword2"],
+      "target_seconds": 2.5,
+      "energy": "high",
+      "transition_hint": "flash",
+      "caption_emphasis": ["power_word"],
+      "speed": "normal"
+    }},
+    {{
+      "role": "body",
+      "narration": "Open a curiosity loop. Make them NEED the next beat.",
+      "broll_keywords": ["keyword1", "keyword2"],
+      "target_seconds": 5.0,
+      "energy": "high",
+      "transition_hint": "auto",
+      "caption_emphasis": ["key_word"],
+      "speed": "normal"
+    }},
+    {{
+      "role": "body",
+      "narration": "...",
+      "broll_keywords": ["..."],
+      "target_seconds": 5.0,
+      "energy": "medium",
+      "transition_hint": "auto",
+      "caption_emphasis": [],
+      "speed": "normal"
+    }},
+    {{
+      "role": "body",
+      "narration": "...",
+      "broll_keywords": ["..."],
+      "target_seconds": 5.0,
+      "energy": "medium",
+      "transition_hint": "slide",
+      "caption_emphasis": [],
+      "speed": "normal"
+    }},
+    {{
+      "role": "cta",
+      "narration": "End with a QUESTION or bold claim, NEVER 'follow for more'.",
+      "broll_keywords": ["keyword1", "keyword2"],
+      "target_seconds": 3.0,
+      "energy": "medium",
+      "transition_hint": "fade",
+      "caption_emphasis": [],
+      "speed": "normal"
+    }}
   ]
 }}
 
-Constraints:
-- Total target_seconds roughly 25-35.
-- First beat must reference the hook clip energy (shock, fail, splash, etc.).
-- Each narration line <= 25 words. Conversational, spoken-style.
-- broll_keywords are 1-2 word generic visual terms (objects, places, actions).
+VIRAL RULES (follow ALL):
+1. HOOK: Open with the payoff/result. "This dog just did the impossible." NOT "Let me tell you about a dog."
+2. Each narration <= 20 words. Punchy. Conversational. Like texting a friend.
+3. PATTERN INTERRUPT: Each beat shifts energy or introduces something new.
+4. CURIOSITY GAP: Every beat must make the viewer think "wait, what happens next?"
+5. OPEN LOOP: Leave something unresolved that the next beat resolves.
+6. CTA: End with a question ("would YOU try this?") or bold claim.
+7. LOOP POINT: Last sentence should echo the hook so rewatchers get hooked again.
+8. energy: "high" for shocking/funny, "medium" for reveals, "low" for emotional pauses.
+9. transition_hint: "flash" for impact cuts, "slide" for reveals, "fade" for emotional.
+10. caption_emphasis: 1-2 POWER WORDS per beat to highlight (impossible, secret, insane…).
+11. Total duration 25-35 seconds. Hook 2-3s, body 4-6s each, CTA 2-3s.
+12. broll_keywords: 2-3 specific visual terms. "golden retriever dancing" not just "dog".
 """
 
-# Tag delimiters used by reasoning models. Constructed via concatenation so
-# the literal tag tokens do not appear contiguously in this source file.
+# ─── topic generation prompt ─────────────────────────────────────────────
+
+TOPIC_PROMPT = """\
+Generate ONE viral short-form video topic.
+
+Hook clip being used: {hook_name} — {hook_desc}
+Hook energy keywords: {tags}
+Example topic styles that work with this hook:
+{seeds}
+
+The topic MUST:
+1. Trigger instant curiosity (viewer NEEDS to know)
+2. Be emotionally charged (shock, awe, humor, or fear)
+3. Appeal to a wide audience (not niche)
+4. Match the hook's energy: {hook_desc}
+
+Return ONLY the topic text. No quotes, no explanation. 15 words max.
+Examples of good viral topics:
+- "This is why cats are secretly plotting against you"
+- "The 3-second trick that makes anyone instantly like you"
+- "Scientists just discovered something terrifying about sleep"
+"""
+
+# ─── think-tag stripping ─────────────────────────────────────────────────
+
 _THINK_OPEN = "<" + "think" + ">"
 _THINK_CLOSE = "<" + "/" + "think" + ">"
 
 
-def _call_llm(topic: str, hook_name: str, hook_desc: str,
-              settings: Settings) -> str:
+# ─── LLM calls ───────────────────────────────────────────────────────────
+
+def _call_llm(
+    topic: str,
+    hook_name: str,
+    hook_desc: str,
+    settings: Settings,
+) -> str:
     from openai import OpenAI
 
-    client = OpenAI(api_key=settings.openai_api_key, base_url=settings.openai_base_url)
+    client = OpenAI(
+        api_key=settings.openai_api_key,
+        base_url=settings.openai_base_url,
+    )
     resp = client.chat.completions.create(
         model=settings.openai_model,
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": USER_TEMPLATE.format(
-                topic=topic, hook_name=hook_name, hook_desc=hook_desc)},
+            {
+                "role": "user",
+                "content": USER_TEMPLATE.format(
+                    topic=topic, hook_name=hook_name, hook_desc=hook_desc,
+                ),
+            },
         ],
         response_format={"type": "json_object"},
         max_tokens=1500,
-        temperature=0.8,
+        temperature=0.85,
     )
     return resp.choices[0].message.content or "{}"
 
 
-def _parse_payload(payload: str) -> dict[str, Any]:
-    """Parse the LLM response as JSON.
+def generate_topic(hook: Hook, settings: Settings) -> str:
+    """Use the LLM to invent a viral topic that matches *hook*'s energy."""
+    if not settings.openai_api_key:
+        # Offline fallback: pick from the hook's own seeds.
+        if hook.topic_seeds:
+            return random.choice(hook.topic_seeds)
+        return f"incredible things about {random.choice(hook.tags)}"
 
-    Defensive against three common deviations from a clean JSON response:
-    1. Markdown code fences (many "OpenAI-compatible" proxies ignore
-       `response_format={"type": "json_object"}`).
-    2. Reasoning-model think blocks (used by DeepSeek R1, Qwen QwQ,
-       MiniMax-M3, etc. - the actual answer is below the closing tag).
-    3. Leading/trailing whitespace.
-    """
-    text = payload.strip()
-    # Strip reasoning blocks. Case-insensitive so <THINK> / <Think> also match.
+    from openai import OpenAI
+
+    client = OpenAI(
+        api_key=settings.openai_api_key,
+        base_url=settings.openai_base_url,
+    )
+    seeds_text = "\n".join(f"- {s}" for s in (hook.topic_seeds or hook.tags))
+    prompt = TOPIC_PROMPT.format(
+        hook_name=hook.name,
+        hook_desc=hook.description,
+        tags=", ".join(hook.tags),
+        seeds=seeds_text,
+    )
+    try:
+        resp = client.chat.completions.create(
+            model=settings.openai_model,
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=150,
+            temperature=0.95,
+        )
+        text = (resp.choices[0].message.content or "").strip()
+        # Strip thinking blocks from the topic response too
+        text = _strip_think(text).strip().strip("\"'")
+        if text:
+            return text
+    except Exception:
+        pass
+    if hook.topic_seeds:
+        return random.choice(hook.topic_seeds)
+    return f"incredible things about {random.choice(hook.tags)}"
+
+
+# ─── parsing helpers ─────────────────────────────────────────────────────
+
+def _strip_think(text: str) -> str:
+    """Remove ``<think>…</think>`` blocks (matched and unclosed)."""
     lower = text.lower()
     open_tag = _THINK_OPEN.lower()
     close_tag = _THINK_CLOSE.lower()
-    # Strip matched <think>...</think> pairs.
+
+    # Matched pairs
     while open_tag in lower and close_tag in lower:
         start = lower.find(open_tag)
         end = lower.find(close_tag, start)
@@ -95,34 +233,35 @@ def _parse_payload(payload: str) -> dict[str, Any]:
         text = text[:start] + text[end + len(close_tag):]
         text = text.lstrip()
         lower = text.lower()
-    # Strip *unclosed* <think> blocks (model ran out of tokens mid-reasoning).
-    # Everything from the opening tag onward is reasoning with no JSON after it.
+
+    # Unclosed <think> (model ran out of tokens mid-reasoning)
     if open_tag in lower and close_tag not in lower:
         start = lower.find(open_tag)
-        # Check if there is any JSON-like content before the unclosed tag.
         before = text[:start].strip()
-        if before:
-            text = before
-        else:
-            # No content before the tag; discard the whole block.
-            text = "{}"
-        lower = text.lower()
-    # Strip markdown code fences.
+        text = before if before else "{}"
+    return text
+
+
+def _parse_payload(payload: str) -> dict[str, Any]:
+    """Parse LLM response as JSON, stripping think blocks and code fences."""
+    text = _strip_think(payload.strip())
+
+    # Strip markdown code fences
     if text.startswith("```"):
-        first_newline = text.find("\n")
-        if first_newline != -1:
-            text = text[first_newline + 1:]
-        else:
-            text = text.lstrip("`")
+        first_nl = text.find("\n")
+        text = text[first_nl + 1:] if first_nl != -1 else text.lstrip("`")
         if text.endswith("```"):
             text = text[:-3]
         text = text.strip()
+
     return json.loads(text)
 
 
 def _truncate(s: str, n: int = 300) -> str:
     return s if len(s) <= n else s[:n] + f"... <{len(s) - n} more chars>"
 
+
+# ─── fallback template ───────────────────────────────────────────────────
 
 def _fallback_script(topic: str, hook_name: str) -> Script:
     """Used when no OpenAI key is set. Keeps pipeline functional."""
@@ -134,28 +273,51 @@ def _fallback_script(topic: str, hook_name: str) -> Script:
         "the trick is to focus on the small details first.",
     ]
     beats = [
-        Beat(role="hook_intro",
-             narration=f"wait. watch this. {topic} just clicked.",
-             broll_keywords=["shock", "reaction", "face"],
-             target_seconds=3.0),
+        Beat(
+            role="hook_intro",
+            narration=f"wait. watch this. {topic} just clicked.",
+            broll_keywords=["shock", "reaction", "face"],
+            target_seconds=2.5,
+            energy="high",
+            transition_hint="flash",
+            caption_emphasis=["watch"],
+        ),
     ]
+    energies = ["high", "medium", "medium"]
     for i in range(3):
         beats.append(Beat(
             role="body",
             narration=body_templates[i % len(body_templates)].format(topic=topic),
-            broll_keywords=rng.sample(["closeup", "wide shot", "hands", "screen", "city", "nature"], 2),
+            broll_keywords=rng.sample(
+                ["closeup", "wide shot", "hands", "screen", "city", "nature"], 2,
+            ),
             target_seconds=5.0,
+            energy=energies[i],
+            transition_hint="auto",
         ))
-    beats.append(Beat(role="cta",
-                       narration="follow for more like this.",
-                       broll_keywords=["subscribe", "like"],
-                       target_seconds=3.0))
+    beats.append(Beat(
+        role="cta",
+        narration="would you try this? be honest.",
+        broll_keywords=["question", "thinking"],
+        target_seconds=3.0,
+        energy="medium",
+        transition_hint="fade",
+        caption_emphasis=["honest"],
+    ))
     return Script(topic=topic, hook_name=hook_name, beats=beats)
 
 
-def generate(topic: str, hook_name: str, hook_desc: str,
-             settings: Settings, *, retries: int = 2) -> Script:
-    """Generate a Script. Falls back to template if no API key or parse fails."""
+# ─── main entry point ────────────────────────────────────────────────────
+
+def generate(
+    topic: str,
+    hook_name: str,
+    hook_desc: str,
+    settings: Settings,
+    *,
+    retries: int = 2,
+) -> Script:
+    """Generate a Script.  Falls back to template if no API key or parse fails."""
     if not settings.openai_api_key:
         return _fallback_script(topic, hook_name)
 

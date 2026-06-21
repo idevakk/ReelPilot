@@ -1,17 +1,23 @@
 """ASS subtitle builder for TikTok-style pop-on word captions.
 
-Each word is rendered as its own line (Dialogue) with a quick scale tween.
-We add a small pre-roll (~30ms) so captions appear *just before* the word
-is spoken, which matches TikTok viewer expectation.
+v2 enhancements:
+- **Color emphasis**: key words rendered in yellow for visual pop.
+- **Larger font**: 84pt for mobile readability.
+- **Thicker outline + shadow**: legible over any background.
+- **Position variation**: hook at center, body at bottom, CTA at center.
+- Pre-roll timing so captions appear *just before* the word is spoken.
 """
 
 from __future__ import annotations
 
 from pathlib import Path
 
-from .models import Captions, WordCue
+from .models import Beat, Captions, WordCue
 
-ASS_HEADER = """[Script Info]
+# ─── ASS header ──────────────────────────────────────────────────────────
+
+ASS_HEADER = """\
+[Script Info]
 Title: shortmaker
 ScriptType: v4.00+
 WrapStyle: 0
@@ -21,8 +27,9 @@ PlayResY: 1920
 
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: Pop,Montserrat Black,72,&H00FFFFFF,&H000000FF,&H00000000,&H80000000,-1,0,0,0,100,100,0,0,1,5,2,2,60,60,260,1
-Style: Line,Montserrat Black,62,&H00FFFFFF,&H000000FF,&H00000000,&H80000000,-1,0,0,0,100,100,0,0,1,4,2,2,60,60,340,1
+Style: Pop,Montserrat Black,84,&H00FFFFFF,&H000000FF,&H00000000,&H96000000,-1,0,0,0,100,100,0,0,1,6,3,2,60,60,260,1
+Style: PopKey,Montserrat Black,88,&H0000DDFF,&H000000FF,&H00000000,&H96000000,-1,0,0,0,100,100,0,0,1,6,3,2,60,60,260,1
+Style: Line,Montserrat Black,62,&H00FFFFFF,&H000000FF,&H00000000,&H96000000,-1,0,0,0,100,100,0,0,1,5,2,2,60,60,340,1
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
@@ -41,20 +48,35 @@ def _fmt_time(t: float) -> str:
 
 
 def _pop_tag(start: float) -> str:
-    """{\\an2\\t(start,start+80,start+160)} style pop animation."""
+    """{\\an2\\t(…)} pop-scale animation: 100→125→100 in 150ms."""
     s_ms = int(start * 1000)
-    rise_end = s_ms + 80
-    fall_end = s_ms + 160
-    # Pop scale 100 -> 120 -> 100 across 160ms at the word start.
+    rise_end = s_ms + 75
+    fall_end = s_ms + 150
     return (
         f"{{\\an2"
-        f"\\t({s_ms},{rise_end},\\fscx120\\fscy120)"
+        f"\\t({s_ms},{rise_end},\\fscx125\\fscy125)"
         f"\\t({rise_end},{fall_end},\\fscx100\\fscy100)}}"
     )
 
 
-def build(captions: Captions, out_path: Path, line_break_every: int = 4) -> Path:
-    """Render captions.ass with one Dialogue per word plus grouped line cues."""
+def _is_emphasis(word: str, emphasis_words: set[str]) -> bool:
+    """Check if *word* (case-insensitive, punctuation-stripped) is emphasised."""
+    clean = word.strip(".,!?;:'\"").lower()
+    return clean in emphasis_words
+
+
+def build(
+    captions: Captions,
+    out_path: Path,
+    line_break_every: int = 4,
+    beats: list[Beat] | None = None,
+) -> Path:
+    """Render captions.ass with per-word pop cues and grouped line cues.
+
+    If *beats* are provided, words that appear in any beat's
+    ``caption_emphasis`` list are rendered with the ``PopKey`` style
+    (yellow, slightly larger) for visual punch.
+    """
     lines: list[str] = [ASS_HEADER]
 
     cues = captions.cues
@@ -62,15 +84,25 @@ def build(captions: Captions, out_path: Path, line_break_every: int = 4) -> Path
         out_path.write_text("".join(lines), encoding="utf-8")
         return out_path
 
-    # Per-word pop cues
+    # Collect all emphasis words from all beats
+    emphasis: set[str] = set()
+    if beats:
+        for b in beats:
+            for w in b.caption_emphasis:
+                emphasis.add(w.strip().lower())
+
+    # ── Per-word pop cues ──
     for cue in cues:
         start = max(0.0, cue.start - PREROLL_S)
-        text = _pop_tag(0.0) + cue.word.replace("\\", " ").replace("\n", " ")
+        safe_word = cue.word.replace("\\", " ").replace("\n", " ")
+        text = _pop_tag(0.0) + safe_word
+
+        style = "PopKey" if _is_emphasis(cue.word, emphasis) else "Pop"
         lines.append(
-            f"Dialogue: 0,{_fmt_time(start)},{_fmt_time(cue.end)},Pop,,0,0,0,,{text}\n"
+            f"Dialogue: 0,{_fmt_time(start)},{_fmt_time(cue.end)},{style},,0,0,0,,{text}\n"
         )
 
-    # Phrase-level line cues for readers who prefer sentence chunks.
+    # ── Phrase-level line cues ──
     for i in range(0, len(cues), line_break_every):
         chunk = cues[i: i + line_break_every]
         text = " ".join(c.word for c in chunk).replace("\\", " ").replace("\n", " ")

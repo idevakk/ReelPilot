@@ -1,4 +1,14 @@
-"""CLI entry point: `python -m shortmaker "topic"` or `shortmaker "topic"`."""
+"""CLI entry point: ``python -m shortmaker "topic"`` or ``shortmaker "topic"``.
+
+v2 — Full auto-pilot:
+
+    shortmaker                     # auto mode: random hook → generated topic
+    shortmaker "topic"             # manual topic, auto hook
+    shortmaker "topic" --hook X    # manual everything
+    shortmaker --count 5           # batch auto: 5 videos
+    shortmaker --list-hooks        # show available hooks
+    shortmaker --cache-stats       # show cache statistics
+"""
 
 from __future__ import annotations
 
@@ -12,12 +22,13 @@ from typing import Optional
 import typer
 from rich.console import Console
 from rich.panel import Panel
+from rich.table import Table
 
-from . import assembly, broll, captions, hooks, matcher, music, script, stt, tts
+from . import assembly, broll, cache, captions, hooks, matcher, music, script, stt, tts
 from .config import OUTPUT_DIR, settings
-from .models import Script
+from .models import Script as ScriptModel
 
-app = typer.Typer(add_completion=False, no_args_is_help=True)
+app = typer.Typer(add_completion=False)
 console = Console()
 
 
@@ -42,6 +53,8 @@ def _require_ffmpeg() -> None:
 
 
 def _pick_hook(topic: str, requested: str, s) -> hooks.Hook:
+    if requested.lower() == "random":
+        return hooks.random_hook()
     if requested and requested.lower() != "auto":
         return hooks.by_name(requested)
     s_obj = s()
@@ -57,11 +70,7 @@ def _pick_hook(topic: str, requested: str, s) -> hooks.Hook:
 
 def _fetch_broll_parallel(beats, api_key: str | None,
                           max_workers: int = 4) -> list[Path | None]:
-    """Download B-roll for all beats concurrently.
-
-    Network-bound; no contention with faster-whisper or the LLM call which
-    happen on different stages of the pipeline.
-    """
+    """Download B-roll for all beats concurrently."""
     def _one(beat):
         kw = beat.broll_keywords[0] if beat.broll_keywords else beat.narration[:20]
         fb = beat.broll_keywords[1:] if len(beat.broll_keywords) > 1 else None
@@ -75,96 +84,131 @@ def _fetch_broll_parallel(beats, api_key: str | None,
         return list(ex.map(_one, beats))
 
 
-@app.command()
-def main(
-    topic: str = typer.Argument(..., help="Short video topic."),
-    hook: str = typer.Option("auto", "--hook", "-k", help="Hook name or 'auto'."),
-    voice: str = typer.Option(tts.DEFAULT_VOICE, "--voice", help="Deepgram Aura voice id."),
-    out: Optional[Path] = typer.Option(None, "--out", "-o", help="Output MP4 path."),
-    force_redownload: bool = typer.Option(False, "--force", help="Re-download all assets."),
-) -> None:
-    """Generate a 9:16 short MP4 from a topic + Malloy hook."""
+def _make_one_video(
+    topic: str | None,
+    hook_name: str,
+    voice: str,
+    out: Path | None,
+    force_redownload: bool,
+    video_num: int = 1,
+) -> Path:
+    """Core pipeline: generate one video and return the output path."""
     _require_ffmpeg()
     s = settings()
     s.ensure_paths()
     t0 = time.time()
 
-    console.rule("[bold]shortmaker[/bold]")
+    console.rule(f"[bold]shortmaker[/bold] — video #{video_num}")
 
-    with console.status("[bold green]Picking hook..."):
-        chosen_hook = _pick_hook(topic, hook, settings)
-    console.print(f"[cyan]Hook:[/cyan] {chosen_hook.name} ({chosen_hook.description})")
+    # ── Hook selection ──
+    if topic is None:
+        # AUTO MODE: random hook → generate topic
+        with console.status("[bold green]Picking random hook..."):
+            chosen_hook = hooks.random_hook()
+        console.print(f"[cyan]Hook:[/cyan] {chosen_hook.name} ({chosen_hook.description})")
+
+        with console.status("[bold green]Generating viral topic..."):
+            topic = script.generate_topic(chosen_hook, s)
+        console.print(f"[cyan]Topic:[/cyan] {topic}")
+    else:
+        # MANUAL MODE: user-provided topic
+        with console.status("[bold green]Picking hook..."):
+            chosen_hook = _pick_hook(topic, hook_name, settings)
+        console.print(f"[cyan]Hook:[/cyan] {chosen_hook.name} ({chosen_hook.description})")
 
     with console.status("[bold green]Ensuring hook clip..."):
         hook_path = hooks.ensure(chosen_hook, force=force_redownload)
     console.print(f"[dim]Hook cached at {hook_path}[/dim] ({_elapsed(t0)})")
 
-    with console.status("[bold green]Writing script..."):
-        script_obj: Script = script.generate(
+    # ── Script ──
+    with console.status("[bold green]Writing viral script..."):
+        script_obj: ScriptModel = script.generate(
             topic=topic,
             hook_name=chosen_hook.name,
             hook_desc=chosen_hook.description,
             settings=s,
         )
-    console.print(f"[cyan]Script:[/cyan] {len(script_obj.beats)} beats, "
-                  f"~{script_obj.target_duration:.1f}s")
+    console.print(
+        f"[cyan]Script:[/cyan] {len(script_obj.beats)} beats, "
+        f"~{script_obj.target_duration:.1f}s"
+    )
+    # Show beats with energy indicators
+    for i, beat in enumerate(script_obj.beats):
+        energy_icon = {"high": "*", "medium": "-", "low": "."}.get(beat.energy, " ")
+        console.print(
+            f"  {energy_icon} [{beat.role}] {beat.narration[:60]}{'...' if len(beat.narration) > 60 else ''}"
+        )
 
+    # -- Work directory --
     work_dir = OUTPUT_DIR / "_work" / f"{_slug(topic)}_{int(time.time())}"
     work_dir.mkdir(parents=True, exist_ok=True)
     voice_wav = work_dir / "voice.wav"
     captions_json = work_dir / "captions.json"
     captions_ass = work_dir / "captions.ass"
 
+    # ── TTS ──
     with console.status("[bold green]Synthesizing voiceover..."):
         voice_dur = tts.synthesize(
             script_obj.full_narration, voice_wav,
-            api_key=s.deepgram_api_key, voice=voice, target_seconds=script_obj.target_duration,
+            api_key=s.deepgram_api_key, voice=voice,
+            target_seconds=script_obj.target_duration,
         )
         cost = tts.estimate_cost_usd(script_obj.full_narration)
-    console.print(f"[dim]Voiceover: {voice_dur:.1f}s (est. ${cost:.4f} Deepgram)")  # noqa: F541
+    console.print(f"[dim]Voiceover: {voice_dur:.1f}s (est. ${cost:.4f} Deepgram)")
 
+    # ── STT for word timings ──
     console.print("[yellow]Loading faster-whisper (first run downloads ~460 MB)…[/yellow]")
     with console.status("[bold green]Transcribing word timings..."):
         captions_obj = stt.transcribe_to_json(voice_wav, captions_json)
     console.print(f"[cyan]Captions:[/cyan] {len(captions_obj.cues)} words")
 
-    with console.status("[bold green]Building ASS..."):
-        captions.build(captions_obj, captions_ass)
+    # ── Build ASS with emphasis ──
+    with console.status("[bold green]Building enhanced captions..."):
+        captions.build(captions_obj, captions_ass, beats=script_obj.beats)
 
+    # ── B-roll (parallel) ──
     with console.status("[bold green]Fetching b-roll (parallel)..."):
         broll_results = _fetch_broll_parallel(script_obj.beats, s.pexels_api_key)
     broll_paths: list[Path] = []
     for beat, p in zip(script_obj.beats, broll_results):
         if p is None:
-            console.print(f"[yellow]No b-roll for beat, using hook as fallback[/yellow]")
+            console.print("[yellow]No b-roll for beat, using hook as fallback[/yellow]")
             p = hook_path
         broll_paths.append(p)
     console.print(f"[cyan]B-roll:[/cyan] {len(broll_paths)} clips")
 
+    # ── Music ──
     with console.status("[bold green]Fetching music..."):
-        music_path = music.fetch(topic, s.pixabay_api_key, target_seconds=script_obj.target_duration)
+        music_path = music.fetch(
+            topic, s.pixabay_api_key,
+            target_seconds=script_obj.target_duration,
+        )
     console.print(f"[cyan]Music:[/cyan] {music_path.name}")
 
+    # ── Assembly (xfade + effects + vignette) ──
     out_path = out or (OUTPUT_DIR / f"{_slug(topic)}_{int(time.time())}.mp4")
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    beat_durations = [b.target_seconds for b in script_obj.beats]
 
-    with console.status("[bold green]Assembling final MP4..."):
+    with console.status("[bold green]Assembling final MP4 (xfade + effects)..."):
         assembly.assemble(
             hook_path=hook_path,
             broll_clips=broll_paths,
             voice=voice_wav,
             music=music_path,
             captions_ass=captions_ass,
-            beat_durations=beat_durations,
+            beats=script_obj.beats,
             out_path=out_path,
+            quality=s.video_quality,
         )
 
+    # ── Sidecar + summary ──
     attributions = {
         "B-roll": "Pexels" if s.pexels_api_key else "cached/fallback",
-        "Music": "Pixabay" if s.pixabay_api_key else "fallback tone",
+        "Music": "Pixabay" if s.pixabay_api_key else ("local library" if music_path.parent.name == "library" else "fallback tone"),
         "Voice": f"Deepgram Aura ({voice})" if s.deepgram_api_key else "silent placeholder",
         "Script": f"{s.openai_model} via OpenAI-compatible API" if s.openai_api_key else "template fallback",
+        "Transitions": "xfade (energy-aware)",
+        "Effects": "Ken Burns varied + vignette",
     }
     sidecar = assembly.write_sidecar(out_path, script_obj, captions_obj, attributions)
 
@@ -175,6 +219,113 @@ def main(
         f"Total: {_elapsed(t0)}",
         border_style="green",
     ))
+
+    return out_path
+
+
+# ─── CLI command ──────────────────────────────────────────────────────────
+
+@app.command()
+def main(
+    topic: Optional[str] = typer.Argument(
+        None, help="Short video topic. Leave empty for full auto mode.",
+    ),
+    hook: str = typer.Option(
+        "auto", "--hook", "-k",
+        help="Hook name, 'auto', or 'random'.",
+    ),
+    count: int = typer.Option(
+        1, "--count", "-n",
+        help="Number of videos to generate (auto mode).",
+    ),
+    voice: str = typer.Option(
+        tts.DEFAULT_VOICE, "--voice",
+        help="Deepgram Aura voice id.",
+    ),
+    out: Optional[Path] = typer.Option(
+        None, "--out", "-o",
+        help="Output MP4 path (only for single video).",
+    ),
+    force_redownload: bool = typer.Option(
+        False, "--force",
+        help="Re-download all assets.",
+    ),
+    list_hooks: bool = typer.Option(
+        False, "--list-hooks",
+        help="List available hooks and exit.",
+    ),
+    cache_stats: bool = typer.Option(
+        False, "--cache-stats",
+        help="Show cache statistics and exit.",
+    ),
+    cache_clear: bool = typer.Option(
+        False, "--cache-clear",
+        help="Clear the asset cache and exit.",
+    ),
+) -> None:
+    """Generate viral 9:16 short MP4s.
+
+    \b
+    Auto mode (no topic):
+        shortmaker                     -> random hook + generated topic
+        shortmaker --count 5           -> batch: 5 auto videos
+    \b
+    Manual mode:
+        shortmaker "crazy dog dance"   -> your topic, best-fit hook
+        shortmaker "topic" --hook X    -> your topic + specific hook
+    """
+
+    # ── Utility commands ──
+    if list_hooks:
+        table = Table(title="Available Hooks")
+        table.add_column("Name", style="cyan")
+        table.add_column("Description")
+        table.add_column("Tags", style="dim")
+        for h in hooks.CATALOG:
+            table.add_row(h.name, h.description, ", ".join(h.tags))
+        console.print(table)
+        return
+
+    if cache_stats:
+        stats = cache.get_stats()
+        table = Table(title="Asset Cache")
+        table.add_column("Type", style="cyan")
+        table.add_column("Count", justify="right")
+        for k, v in stats.items():
+            table.add_row(k, str(v))
+        console.print(table)
+        return
+
+    if cache_clear:
+        cache.clear_all()
+        console.print("[green]Cache cleared.[/green]")
+        return
+
+    # ── Video generation ──
+    if topic is None:
+        console.print(
+            f"[bold magenta]🎬 Auto-pilot mode — generating {count} video(s)[/bold magenta]"
+        )
+
+    outputs: list[Path] = []
+    for i in range(count):
+        out_i = out if count == 1 else None  # only use --out for single video
+        result = _make_one_video(
+            topic=topic,
+            hook_name=hook,
+            voice=voice,
+            out=out_i,
+            force_redownload=force_redownload,
+            video_num=i + 1,
+        )
+        outputs.append(result)
+
+    if count > 1:
+        console.print(Panel.fit(
+            f"[bold green]Batch complete: {count} videos[/bold green]\n"
+            + "\n".join(str(p) for p in outputs),
+            border_style="green",
+        ))
 
 
 if __name__ == "__main__":

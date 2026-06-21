@@ -1,6 +1,6 @@
 """Configuration: env loading, paths, settings.
 
-Directory creation is deferred to `Settings.ensure_paths()` so that simply
+Directory creation is deferred to ``Settings.ensure_paths()`` so that simply
 importing the package (e.g. from tests, REPL, or tooling) does not write to
 the filesystem.
 """
@@ -20,9 +20,12 @@ ASSETS_DIR = PROJECT_ROOT / "assets"
 HOOKS_DIR = ASSETS_DIR / "hooks"
 BROLL_DIR = ASSETS_DIR / "broll"
 MUSIC_DIR = ASSETS_DIR / "music"
+MUSIC_LIBRARY_DIR = MUSIC_DIR / "library"
 OUTPUT_DIR = PROJECT_ROOT / os.getenv("OUTPUT_DIR", "out")
 
-_ASSET_DIRS: tuple[Path, ...] = (HOOKS_DIR, BROLL_DIR, MUSIC_DIR, OUTPUT_DIR)
+_ASSET_DIRS: tuple[Path, ...] = (
+    HOOKS_DIR, BROLL_DIR, MUSIC_DIR, MUSIC_LIBRARY_DIR, OUTPUT_DIR,
+)
 
 
 @dataclass(frozen=True)
@@ -34,6 +37,11 @@ class Settings:
     openai_base_url: str
     openai_model: str
 
+    # ── v2 quality knobs ──
+    video_quality: str       # "draft" (fast) | "final" (slow, max quality)
+    transition_style: str    # "aggressive" (fast cuts) | "smooth" (longer fades)
+    caption_style: str       # "minimal" | "bold" | "animated"
+
     @classmethod
     def load(cls) -> "Settings":
         return cls(
@@ -43,6 +51,9 @@ class Settings:
             openai_api_key=os.getenv("OPENAI_API_KEY") or None,
             openai_base_url=os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1").rstrip("/"),
             openai_model=os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
+            video_quality=os.getenv("VIDEO_QUALITY", "final"),
+            transition_style=os.getenv("TRANSITION_STYLE", "aggressive"),
+            caption_style=os.getenv("CAPTION_STYLE", "bold"),
         )
 
     def ensure_paths(self) -> None:

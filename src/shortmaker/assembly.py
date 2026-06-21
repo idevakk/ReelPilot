@@ -1,10 +1,14 @@
-"""Final assembly: hook + B-roll + voiceover + music + burned captions -> MP4.
+"""Final assembly: hook + B-roll + voiceover + music + burned captions → MP4.
 
-Pipeline is implemented as a series of FFmpeg invocations. The intermediate
-work directory is created per-run via tempfile.mkdtemp and cleaned up
-automatically, so back-to-back runs cannot collide.
+v2 — Advanced pipeline:
 
-Output: 1080x1920, 30fps, h264 + AAC, faststart-enabled for direct upload.
+1. **Normalize** each clip with varied Ken Burns motion (zoom in/out, pan L/R).
+2. **xfade transitions** between clips (fade, slide, flash, zoom, dissolve)
+   chosen by beat energy — replaces the old hard-cut concat.
+3. **Audio mix** with sidechain compression (voice ducks music).
+4. **Burn enhanced captions** with vignette overlay for cinematic feel.
+
+Output: 1080×1920, 30 fps, H.264 + AAC, faststart for direct upload.
 """
 
 from __future__ import annotations
@@ -16,18 +20,24 @@ import subprocess
 import tempfile
 from pathlib import Path
 
-from .models import Captions, Script
+from . import effects
+from .models import Beat, Captions, Script
 
 WIDTH, HEIGHT = 1080, 1920
 FPS = 30
 HOOK_TAIL_S = 2.5
 
-# Shared between normalize_clip and burn_captions so a single quality tweak
-# applies to both encode passes.
 ENCODE_ARGS: list[str] = [
     "-c:v", "libx264",
     "-preset", "veryfast",
     "-crf", "20",
+    "-pix_fmt", "yuv420p",
+]
+
+ENCODE_ARGS_FINAL: list[str] = [
+    "-c:v", "libx264",
+    "-preset", "medium",
+    "-crf", "18",
     "-pix_fmt", "yuv420p",
 ]
 
@@ -49,18 +59,20 @@ def _ffprobe_duration(path: Path) -> float:
     return float(out.decode().strip() or "0")
 
 
-def trim_hook(hook_path: Path, dest: Path, duration: float = HOOK_TAIL_S) -> Path:
-    """Re-encode the last `duration` seconds of the hook to the assembly
-    pipeline's shared codec/format so it can be `-c copy` concat'd with the
-    normalized B-roll. Clamped to the source duration if the clip is shorter.
-    """
+# ─── step 1: normalise individual clips ──────────────────────────────────
+
+def trim_hook(hook_path: Path, dest: Path,
+              duration: float = HOOK_TAIL_S) -> Path:
+    """Re-encode the last *duration* seconds of the hook clip."""
     src_dur = _ffprobe_duration(hook_path)
     eff = max(0.5, min(duration, max(0.0, src_dur - 0.1)))
     _run([
         "ffmpeg", "-y", "-sseof", f"-{eff}",
         "-i", str(hook_path),
-        "-vf", f"scale={WIDTH}:{HEIGHT}:force_original_aspect_ratio=increase,"
-               f"crop={WIDTH}:{HEIGHT}",
+        "-vf", (
+            f"scale={WIDTH}:{HEIGHT}:force_original_aspect_ratio=increase,"
+            f"crop={WIDTH}:{HEIGHT}"
+        ),
         "-t", str(eff),
         "-an",
         *ENCODE_ARGS,
@@ -69,26 +81,14 @@ def trim_hook(hook_path: Path, dest: Path, duration: float = HOOK_TAIL_S) -> Pat
     return dest
 
 
-def _zoompan_filter(target_dur: float) -> str:
-    """Slow zoom-in Ken Burns: 1.0 -> 1.08 over target_dur seconds.
-
-    Operates at native 1080x1920 resolution; no up-scale before zoom.
-    """
-    frames = max(1, int(target_dur * FPS))
-    return (
-        f"scale={WIDTH}:{HEIGHT}:force_original_aspect_ratio=increase,"
-        f"crop={WIDTH}:{HEIGHT},"
-        f"zoompan=z='1.0+0.08*on/{frames}':d={frames}:"
-        f"x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':"
-        f"s={WIDTH}x{HEIGHT}:fps={FPS}"
-    )
-
-
-def normalize_clip(src: Path, dest: Path, target_dur: float) -> Path:
-    """Scale+crop+zoompan to 1080x1920 @ 30fps, trim to target_dur."""
+def normalize_clip(src: Path, dest: Path, target_dur: float,
+                   motion: str | None = None,
+                   speed: str = "normal") -> Path:
+    """Scale + crop + Ken Burns (varied motion) + optional speed ramp."""
+    vf = effects.normalize_filter(target_dur, motion=motion, speed=speed)
     _run([
         "ffmpeg", "-y", "-i", str(src),
-        "-vf", _zoompan_filter(target_dur),
+        "-vf", vf,
         "-t", str(target_dur),
         "-an",
         *ENCODE_ARGS,
@@ -97,34 +97,55 @@ def normalize_clip(src: Path, dest: Path, target_dur: float) -> Path:
     return dest
 
 
-def concat_clips(clips: list[Path], dest: Path) -> Path:
-    """Concat already-matching-format video clips with the concat demuxer."""
-    list_file = dest.with_suffix(".txt")
-    list_file.write_text(
-        "\n".join(f"file '{p.as_posix()}'" for p in clips),
-        encoding="utf-8",
+# ─── step 2: xfade transition chain ──────────────────────────────────────
+
+def xfade_clips(clips: list[Path],
+                clip_durations: list[float],
+                energies: list[str],
+                transition_hints: list[str],
+                dest: Path) -> Path:
+    """Chain-xfade all clips with energy-aware transitions.
+
+    Replaces the old ``concat_clips`` hard-cut demuxer with smooth
+    inter-clip transitions.
+    """
+    if len(clips) < 2:
+        # Single clip — just copy
+        shutil.copy2(clips[0], dest)
+        return dest
+
+    filter_body, _total_dur = effects.build_xfade_chain(
+        clip_durations, energies, transition_hints,
     )
-    try:
-        _run(["ffmpeg", "-y", "-f", "concat", "-safe", "0",
-              "-i", str(list_file), "-c", "copy", str(dest)])
-    finally:
-        list_file.unlink(missing_ok=True)
+
+    cmd: list[str] = ["ffmpeg", "-y"]
+    for c in clips:
+        cmd += ["-i", str(c)]
+    cmd += [
+        "-filter_complex", filter_body,
+        "-map", "[vout]",
+        *ENCODE_ARGS,
+        str(dest),
+    ]
+    _run(cmd)
     return dest
 
 
-def mix_audio(voice: Path, music: Path, total_dur: float, dest: Path) -> Path:
-    """Mix voice at 0dB; duck music under voice via sidechaincompress.
+# ─── step 3: audio mix ───────────────────────────────────────────────────
 
-    `sidechaincompress` is AA->A — it needs two audio inputs (signal,
-    sidechain). The graph below feeds the voice as the sidechain so music
-    is attenuated whenever voice is present.
+def mix_audio(voice: Path, music: Path, total_dur: float,
+              dest: Path) -> Path:
+    """Mix voice at 0 dB; duck music under voice via sidechaincompress.
+
+    v2: slightly louder music (0.40 vs 0.35) for energy, with tighter
+    sidechain for cleaner ducking.
     """
     filter_complex = (
         f"[0:a]volume=1.0[voice];"
         f"[1:a]atrim=0:{total_dur},"
-        f"volume=0.35[mus];"
-        f"[mus][voice]sidechaincompress=threshold=0.05:ratio=8:"
-        f"attack=5:release=400:makeup=1[duck];"
+        f"volume=0.40[mus];"
+        f"[mus][voice]sidechaincompress=threshold=0.04:ratio=10:"
+        f"attack=3:release=300:makeup=1[duck];"
         f"[voice][duck]amix=inputs=2:duration=first:dropout_transition=0[mix]"
     )
     _run([
@@ -141,21 +162,13 @@ def mix_audio(voice: Path, music: Path, total_dur: float, dest: Path) -> Path:
     return dest
 
 
-def _escape_ass_path(path: Path) -> str:
-    """Escape a filesystem path for use as the `ass=` filter argument.
+# ─── step 4: burn captions + vignette ────────────────────────────────────
 
-    ffmpeg's filter-graph parser splits on spaces, so any path with a
-    space (e.g. `D:\\A1 Projects\\short-maker\\...`) must escape the
-    space with a backslash. Drive colons and other special chars also
-    need escaping. See ffmpeg docs: "Filtergraph syntax" -> "Escape
-    special characters".
-    """
+def _escape_ass_path(path: Path) -> str:
+    """Escape a filesystem path for ffmpeg's ``ass=`` filter argument."""
     text = str(path).replace("\\", "/")
-    # Order matters: backslash already normalized to `/`, then escape
-    # every filter-graph special char individually.
     return (
         text
-        .replace("\\", "\\\\")  # no-op after the normalize above
         .replace(":", "\\:")
         .replace(" ", "\\ ")
         .replace(",", "\\,")
@@ -166,35 +179,34 @@ def _escape_ass_path(path: Path) -> str:
     )
 
 
-def burn_captions(video: Path, audio: Path, ass: Path, dest: Path) -> Path:
-    """Combine final video + audio + burned ASS subtitles.
+def burn_captions(video: Path, audio: Path, ass: Path, dest: Path,
+                  quality: str = "final") -> Path:
+    """Combine video + audio + burned ASS subtitles + subtle vignette.
 
-    The ASS file is copied to a colon-free Windows temp path before being
-    passed to ffmpeg's `ass=` filter. This works around a ffmpeg 8.x
-    filter-graph parsing issue where a Windows drive-letter colon
-    (e.g. `D\:`) is not properly escaped and gets re-interpreted as an
-    option separator, even though the backslash-colon escape is
-    documented. A colon-free path sidesteps the issue entirely.
+    v2: adds a soft vignette overlay for a cinematic feel.
     """
     fd, tmp_str = tempfile.mkstemp(suffix=".ass", prefix="shortmaker_")
     os.close(fd)
     tmp_ass = Path(tmp_str)
+
+    encode = ENCODE_ARGS_FINAL if quality == "final" else ENCODE_ARGS
+
     try:
         tmp_ass.write_bytes(ass.read_bytes())
         ass_arg = _escape_ass_path(tmp_ass)
-        # Wrap the filename in escaped single quotes. ffmpeg 8.x's filter-graph
-        # parser does NOT honor the `\:` escape for a Windows drive letter — it
-        # treats `\:` as a separator and splits the filename at the first colon.
-        # Quoting the whole argument with `\'...\''` tells the parser to treat
-        # the content as a single value, so the `C:` in the temp path survives.
         ass_arg = f"\\'{ass_arg}\\'"
-        vf = f"scale={WIDTH}:{HEIGHT},ass={ass_arg}"
+        # Scale → burn subs → subtle vignette for cinema feel
+        vf = (
+            f"scale={WIDTH}:{HEIGHT},"
+            f"ass={ass_arg},"
+            f"vignette=PI/5:eval=init"
+        )
         _run([
             "ffmpeg", "-y",
             "-i", str(video), "-i", str(audio),
             "-map", "0:v:0", "-map", "1:a:0",
             "-vf", vf,
-            *ENCODE_ARGS,
+            *encode,
             "-c:a", "copy",
             "-movflags", "+faststart",
             "-shortest",
@@ -205,37 +217,66 @@ def burn_captions(video: Path, audio: Path, ass: Path, dest: Path) -> Path:
     return dest
 
 
-def assemble(hook_path: Path, broll_clips: list[Path], voice: Path,
-             music: Path, captions_ass: Path, beat_durations: list[float],
-             out_path: Path) -> Path:
-    """Full pipeline: normalize -> concat -> mix -> burn captions.
+# ─── full pipeline ────────────────────────────────────────────────────────
 
-    The intermediate work directory is unique per invocation and cleaned up
-    on success/failure to avoid cross-run collisions.
+def assemble(
+    hook_path: Path,
+    broll_clips: list[Path],
+    voice: Path,
+    music: Path,
+    captions_ass: Path,
+    beats: list[Beat],
+    out_path: Path,
+    quality: str = "final",
+) -> Path:
+    """Full pipeline: normalize → xfade → mix → burn captions.
+
+    v2: accepts ``beats`` (with energy/transition_hint) instead of bare
+    durations, enabling energy-aware transitions and varied Ken Burns.
     """
     work = Path(tempfile.mkdtemp(prefix="shortmaker_", dir=out_path.parent))
     try:
+        # ── 1. Normalize hook ──
         hook_trim = work / "hook_trim.mp4"
         trim_hook(hook_path, hook_trim, duration=HOOK_TAIL_S)
 
+        # ── 2. Normalize each b-roll clip with varied motion ──
         normed: list[Path] = [hook_trim]
-        for clip, dur in zip(broll_clips, beat_durations):
+        durations: list[float] = [HOOK_TAIL_S]
+        energies: list[str] = ["high"]          # hook is always high energy
+        hints: list[str] = ["flash"]            # hook → first body is a flash cut
+
+        for clip, beat in zip(broll_clips, beats):
             out = work / f"norm_{clip.stem}.mp4"
-            normalize_clip(clip, out, target_dur=dur)
+            normalize_clip(
+                clip, out,
+                target_dur=beat.target_seconds,
+                motion=None,   # random selection per clip
+                speed=beat.speed,
+            )
             normed.append(out)
+            durations.append(beat.target_seconds)
+            energies.append(beat.energy)
+            hints.append(beat.transition_hint)
 
-        concat = work / "concat.mp4"
-        concat_clips(normed, concat)
+        # ── 3. xfade transition chain ──
+        xfaded = work / "xfaded.mp4"
+        xfade_clips(normed, durations, energies, hints, xfaded)
 
-        total_dur = sum(beat_durations) + HOOK_TAIL_S
+        # ── 4. Audio mix ──
+        total_dur = sum(durations)
         audio = work / "mixed.m4a"
         mix_audio(voice, music, total_dur=total_dur, dest=audio)
 
-        burn_captions(concat, audio, captions_ass, out_path)
+        # ── 5. Burn captions + vignette → final output ──
+        burn_captions(xfaded, audio, captions_ass, out_path, quality=quality)
+
     finally:
         shutil.rmtree(work, ignore_errors=True)
     return out_path
 
+
+# ─── sidecar ──────────────────────────────────────────────────────────────
 
 def write_sidecar(out_path: Path, script: Script, captions: Captions,
                   attributions: dict[str, str]) -> Path:

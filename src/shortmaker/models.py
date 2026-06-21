@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class Hook(BaseModel):
@@ -12,13 +12,24 @@ class Hook(BaseModel):
     url: str
     description: str
     tags: list[str] = Field(default_factory=list)
+    topic_seeds: list[str] = Field(default_factory=list)
 
 
 class Beat(BaseModel):
+    """A single visual+narration segment of a short-form video."""
+
+    model_config = ConfigDict(extra="ignore")
+
     role: Literal["hook_intro", "body", "cta"]
     narration: str
     broll_keywords: list[str] = Field(default_factory=list)
     target_seconds: float = 4.0
+
+    # ── v2 viral fields (all optional with safe defaults) ──
+    energy: Literal["high", "medium", "low"] = "medium"
+    transition_hint: str = "auto"
+    caption_emphasis: list[str] = Field(default_factory=list)
+    speed: Literal["normal", "slow", "fast"] = "normal"
 
 
 class Script(BaseModel):

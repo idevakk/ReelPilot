@@ -3,10 +3,14 @@
 Hooks are served directly from Malloy's CDN. The list below was captured
 from the public catalog page (https://www.malloy.sg/opt-in/transitional-hooks)
 which is JS-paginated; we hardcode the visible set rather than scraping.
+
+v2: each hook carries ``topic_seeds`` — viral topic *shapes* that pair
+naturally with the hook's energy so ``generate_topic()`` can riff on them.
 """
 
 from __future__ import annotations
 
+import random
 import sys
 from pathlib import Path
 
@@ -24,54 +28,108 @@ CATALOG: list[Hook] = [
         url=f"{CDN_BASE}/Snowball-Splash.mp4",
         description="Snowball thrown into a face, water splash.",
         tags=["snow", "winter", "shock", "splash", "fail", "prank", "reaction"],
+        topic_seeds=[
+            "shocking facts that will blow your mind",
+            "things you should never try at home",
+            "wait for it… you won't believe the ending",
+            "cold hard truths nobody wants to hear",
+        ],
     ),
     Hook(
         name="Girl-Punching",
         url=f"{CDN_BASE}/Girl-Punching.mp4",
         description="Girl delivers a quick punch with comedic timing.",
         tags=["fight", "comedy", "shock", "reaction", "karate"],
+        topic_seeds=[
+            "things that hit different when you realize the truth",
+            "this fact will punch you in the face",
+            "tiny things with massive impact",
+            "underrated skills that could save your life",
+        ],
     ),
     Hook(
         name="Pogo-Stick-Fail",
         url=f"{CDN_BASE}/Pogo-Stick-Fail.mp4",
         description="Person bounces on a pogo stick then crashes.",
         tags=["fail", "crash", "comedy", "stunt"],
+        topic_seeds=[
+            "things that seem fun until they go horribly wrong",
+            "biggest fails of everyday life",
+            "why humans are hilariously bad at physics",
+            "ups and downs you can relate to",
+        ],
     ),
     Hook(
         name="Jump-in-Pool",
         url=f"{CDN_BASE}/Jump-in-Pool.mp4",
         description="Cliff or rope jump into a swimming pool.",
         tags=["water", "summer", "splash", "stunt", "fun"],
+        topic_seeds=[
+            "taking the leap on things that terrify you",
+            "summer hacks that will change your life",
+            "the craziest things people do for fun",
+            "things that feel amazing once you actually try them",
+        ],
     ),
     Hook(
         name="Front-Flip-Sand",
         url=f"{CDN_BASE}/Front-Flip-Sand.mp4",
         description="Beach front flip landing face-first in sand.",
         tags=["beach", "fail", "flip", "summer", "comedy"],
+        topic_seeds=[
+            "expectations vs reality of trying to be cool",
+            "embarrassing moments everyone can relate to",
+            "things that look easy but are actually impossible",
+            "face-plant worthy mistakes we all make",
+        ],
     ),
     Hook(
         name="Tree-Surprise",
         url=f"{CDN_BASE}/Tree-Surprise.mp4",
         description="Person jumps out from behind a tree to scare someone.",
         tags=["scare", "prank", "surprise", "forest"],
+        topic_seeds=[
+            "things hiding in plain sight that will shock you",
+            "nature facts that sound made up but are real",
+            "the most unexpected things found in forests",
+            "secrets your surroundings are hiding from you",
+        ],
     ),
     Hook(
         name="Wedding-Cry",
         url=f"{CDN_BASE}/Wedding-Cry.mp4",
         description="Emotional wedding moment, someone crying.",
         tags=["wedding", "emotional", "cry", "love"],
+        topic_seeds=[
+            "moments that hit you right in the feels",
+            "small gestures that mean everything",
+            "stories that will make you cry in 30 seconds",
+            "the most beautiful things humans do for each other",
+        ],
     ),
     Hook(
         name="UFC-Knockout",
         url=f"{CDN_BASE}/UFC-Knockout.mp4",
         description="MMA knockout punch, slow-mo style.",
         tags=["fight", "knockout", "mma", "shock", "sports"],
+        topic_seeds=[
+            "one-hit facts that knock out your old beliefs",
+            "things so powerful they'll change how you think",
+            "the most dominant forces in nature",
+            "knockout moments in history you never heard of",
+        ],
     ),
     Hook(
         name="Opposite-Cookie",
         url=f"{CDN_BASE}/Opposite-Cookie.mp4",
         description="Two people switch cookies, comedic reveal.",
         tags=["food", "comedy", "twist", "switch"],
+        topic_seeds=[
+            "things that are the opposite of what you think",
+            "plot twists in everyday life",
+            "foods that are secretly something else entirely",
+            "the switch-up nobody saw coming",
+        ],
     ),
 ]
 
@@ -82,6 +140,11 @@ def by_name(name: str) -> Hook:
         if h.name.lower() == key:
             return h
     raise KeyError(f"Unknown hook: {name}. Known: {[h.name for h in CATALOG]}")
+
+
+def random_hook() -> Hook:
+    """Pick a random hook from the catalog."""
+    return random.choice(CATALOG)
 
 
 def cache_path(hook: Hook) -> Path:
