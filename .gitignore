@@ -1,0 +1,11 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.env
+out/
+assets/hooks/
+assets/broll/
+assets/music/
+assets/fonts/
+.pytest_cache/
