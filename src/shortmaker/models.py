@@ -20,7 +20,7 @@ class Beat(BaseModel):
 
     model_config = ConfigDict(extra="ignore")
 
-    role: Literal["hook_intro", "body", "cta"]
+    role: Literal["hook_intro", "hook_reaction", "body", "cta"]
     narration: str
     broll_keywords: list[str] = Field(default_factory=list)
     target_seconds: float = 4.0
