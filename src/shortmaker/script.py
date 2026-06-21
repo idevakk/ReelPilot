@@ -44,10 +44,10 @@ Return strict JSON with this shape:
 {{
   "beats": [
     {{
-      "role": "hook_intro",
-      "narration": "<=15 words. Connect the hook to the topic in a conversational way.",
+      "role": "hook_reaction",
+      "narration": "<=15 words. The visual hook has JUST played in silence. Start the narration here by instantly reacting to or acknowledging the hook's vibe, then connect it to the topic.",
       "broll_keywords": ["keyword1", "keyword2"],
-      "target_seconds": 2.5,
+      "target_seconds": 3.0,
       "energy": "high",
       "transition_hint": "flash",
       "caption_emphasis": ["power_word"],
@@ -74,16 +74,6 @@ Return strict JSON with this shape:
       "speed": "normal"
     }},
     {{
-      "role": "body",
-      "narration": "...",
-      "broll_keywords": ["..."],
-      "target_seconds": 5.0,
-      "energy": "medium",
-      "transition_hint": "slide",
-      "caption_emphasis": [],
-      "speed": "normal"
-    }},
-    {{
       "role": "cta",
       "narration": "Wrap up with a thought-provoking final thought. Do NOT ask cheesy questions or say 'follow for more'.",
       "broll_keywords": ["keyword1", "keyword2"],
@@ -97,16 +87,14 @@ Return strict JSON with this shape:
 }}
 
 STORYTELLING RULES (follow ALL):
-1. HOOK: Open with a punchy, conversational statement that connects the hook clip to the topic.
+1. HOOK SEPARATION: The hook video plays FIRST, untouched. Your script begins IMMEDIATELY AFTER the hook finishes. Find a creative angle to match the hook's visual perspective in your first sentence.
 2. NARRATION: Keep sentences flowing naturally. Sound like a real person talking to a friend. No unnatural marketing speak or cliché "curiosity gaps".
 3. STORY ARC: Build interest naturally. Give genuinely fascinating facts or tell a compelling story.
-4. CTA: End with a thought-provoking wrap-up, not a cheesy question. No "What do you think?"
+4. B-ROLL KEYWORDS: This is critical! We download videos from Pexels using these keywords. DO NOT USE abstract terms (like "mind_blown", "concept", "truth"). Use LITERAL, highly-searchable visual nouns and actions (e.g., "coffee cup", "people walking", "storm clouds", "scientist lab"). We prefer videos, so use highly visual terms.
 5. FLOW: Make the transitions between beats smooth and effortless. Don't sound rigid.
 6. energy: "high" for shocking/funny/exciting, "medium" for storytelling/reveals, "low" for emotional pauses.
-7. transition_hint: "flash" for impact cuts, "slide" for reveals, "fade" for emotional, "auto" to let the engine decide.
-8. caption_emphasis: 1-2 words per beat to highlight.
-9. Total duration 25-35 seconds. Hook 2-3s, body 4-6s each, CTA 2-3s.
-10. broll_keywords: 2-3 specific visual terms.
+7. Total duration 25-35 seconds. Body 4-6s each, CTA 2-3s.
+8. broll_keywords: 2-3 specific LITERAL VISUAL terms for each beat.
 """
 
 # ─── topic generation prompt ─────────────────────────────────────────────

@@ -142,8 +142,50 @@ def by_name(name: str) -> Hook:
     raise KeyError(f"Unknown hook: {name}. Known: {[h.name for h in CATALOG]}")
 
 
+import re
+
+_scraped_hooks_cache: list[str] = []
+
+def _scrape_hooks() -> list[str]:
+    global _scraped_hooks_cache
+    if _scraped_hooks_cache:
+        return _scraped_hooks_cache
+    
+    urls = [
+        "https://transitionalhooks.com/social-media-video-hook-library/",
+        "https://transitionalhooks.com/social-media-video-hook-library/page/2/"
+    ]
+    videos = set()
+    for url in urls:
+        try:
+            r = requests.get(url, timeout=10)
+            found = re.findall(r'https://transitionalhooks\.com/wp-content/uploads/[^"\']+\.mp4', r.text)
+            videos.update(found)
+        except Exception:
+            pass
+    _scraped_hooks_cache = list(videos)
+    return _scraped_hooks_cache
+
 def random_hook() -> Hook:
-    """Pick a random hook from the catalog."""
+    """Pick a random hook from the catalog or scraped from transitionalhooks.com."""
+    scraped = _scrape_hooks()
+    if scraped:
+        url = random.choice(scraped)
+        name = url.split("/")[-1].replace(".mp4", "")
+        # Try to find it in the local catalog first to get better topic seeds
+        for h in CATALOG:
+            if h.url.endswith(url.split("/")[-1]):
+                return h
+        
+        # Otherwise return a dynamically created hook
+        desc = name.replace("-", " ")
+        return Hook(
+            name=name,
+            url=url,
+            description=desc,
+            tags=[w.lower() for w in desc.split()],
+            topic_seeds=[],
+        )
     return random.choice(CATALOG)
 
 

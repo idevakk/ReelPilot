@@ -260,6 +260,37 @@ def burn_captions(video: Path, audio: Path, ass: Path, dest: Path,
 
 # ─── full pipeline ────────────────────────────────────────────────────────
 
+def normalize_hook(hook_path: Path, dest: Path) -> Path:
+    """Normalize the entire hook clip to the target resolution, keeping audio."""
+    vf = (
+        f"scale={WIDTH}:{HEIGHT}:force_original_aspect_ratio=increase,"
+        f"crop={WIDTH}:{HEIGHT},"
+        f"fps={FPS},format=nv12"
+    )
+    _run([
+        "ffmpeg", "-y",
+        "-i", str(hook_path),
+        "-vf", vf,
+        "-ac", "2", "-ar", "44100", "-c:a", "aac",
+        *ENCODE_ARGS,
+        str(dest),
+    ], desc="Normalizing Hook", total_duration=5.0)
+    return dest
+
+def concat_videos(vid1: Path, vid2: Path, dest: Path) -> Path:
+    """Concatenate two normalized videos."""
+    list_file = dest.with_suffix(".txt")
+    list_file.write_text(f"file '{vid1.resolve()}'\nfile '{vid2.resolve()}'", encoding="utf-8")
+    _run([
+        "ffmpeg", "-y",
+        "-f", "concat", "-safe", "0",
+        "-i", str(list_file),
+        "-c", "copy",
+        str(dest),
+    ], desc="Concatenating Final Video")
+    list_file.unlink(missing_ok=True)
+    return dest
+
 def assemble(
     hook_path: Path,
     broll_clips: list[Path],
@@ -270,29 +301,25 @@ def assemble(
     out_path: Path,
     quality: str = "final",
 ) -> Path:
-    """Full pipeline: normalize → xfade → mix → burn captions.
-
-    v2: accepts ``beats`` (with energy/transition_hint) instead of bare
-    durations, enabling energy-aware transitions and varied Ken Burns.
-    """
+    """Full pipeline: hook (separate) + body (broll + voice + music + captions)."""
     work = Path(tempfile.mkdtemp(prefix="shortmaker_", dir=out_path.parent))
     try:
-        # ── 1. Normalize hook ──
-        hook_trim = work / "hook_trim.mp4"
-        trim_hook(hook_path, hook_trim, duration=HOOK_TAIL_S)
+        # ── 1. Normalize full hook ──
+        hook_norm = work / "hook_norm.mp4"
+        normalize_hook(hook_path, hook_norm)
 
-        # ── 2. Normalize each b-roll clip with varied motion ──
-        normed: list[Path] = [hook_trim]
-        durations: list[float] = [HOOK_TAIL_S]
-        energies: list[str] = ["high"]          # hook is always high energy
-        hints: list[str] = ["flash"]            # hook → first body is a flash cut
+        # ── 2. Normalize each b-roll clip ──
+        normed: list[Path] = []
+        durations: list[float] = []
+        energies: list[str] = []
+        hints: list[str] = []
 
         for clip, beat in zip(broll_clips, beats):
             out = work / f"norm_{clip.stem}.mp4"
             normalize_clip(
                 clip, out,
                 target_dur=beat.target_seconds,
-                motion=None,   # random selection per clip
+                motion=None,
                 speed=beat.speed,
             )
             normed.append(out)
@@ -300,16 +327,20 @@ def assemble(
             energies.append(beat.energy)
             hints.append(beat.transition_hint)
 
-        # ── 3. xfade transition chain ──
-        xfaded = work / "xfaded.mp4"
-        xfaded, actual_dur = xfade_clips(normed, durations, energies, hints, xfaded)
+        # ── 3. xfade transition chain (body only) ──
+        body_xfaded = work / "body_xfaded.mp4"
+        body_xfaded, body_dur = xfade_clips(normed, durations, energies, hints, body_xfaded)
 
-        # ── 4. Audio mix ──
-        audio = work / "mixed.m4a"
-        mix_audio(voice, music, total_dur=actual_dur, dest=audio)
+        # ── 4. Audio mix (body only) ──
+        body_audio = work / "body_mixed.m4a"
+        mix_audio(voice, music, total_dur=body_dur, dest=body_audio)
 
-        # ── 5. Burn captions + vignette → final output ──
-        burn_captions(xfaded, audio, captions_ass, out_path, actual_dur, quality=quality)
+        # ── 5. Burn captions + vignette on body ──
+        body_final = work / "body_final.mp4"
+        burn_captions(body_xfaded, body_audio, captions_ass, body_final, body_dur, quality=quality)
+
+        # ── 6. Concat Hook + Body ──
+        concat_videos(hook_norm, body_final, out_path)
 
     finally:
         shutil.rmtree(work, ignore_errors=True)
