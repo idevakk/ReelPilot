@@ -41,12 +41,12 @@ def extract_frames(video_path: Path, count: int = 3) -> list[str]:
     return frames
 
 def analyze_hook(video_path: Path, api_key: str) -> str | None:
-    """Uses Gemini 1.5 Flash to analyze the emotional vibe and action of the hook."""
+    """Uses Gemini to analyze the emotional vibe and action of the hook."""
     frames_b64 = extract_frames(video_path, count=3)
     if not frames_b64:
         return None
         
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key={api_key}"
     
     parts = []
     for b64 in frames_b64:
