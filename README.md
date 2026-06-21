@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="assets/static/favicon.png" alt="ShortMaker Logo" width="120" />
+  <img src="assets/static/favicon.png" alt="ReelPilot Logo" width="120" />
 </div>
 
 <h1 align="center">ReelPilot</h1>
@@ -28,8 +28,8 @@
 scoop install ffmpeg   # or choco install ffmpeg
 
 # 2. Clone the repo
-git clone https://github.com/yourusername/shortmaker-studio.git
-cd shortmaker-studio
+git clone https://github.com/yourusername/reelpilot-studio.git
+cd reelpilot-studio
 
 # 3. Create a virtual environment and install dependencies
 uv venv
@@ -56,7 +56,7 @@ Edit your `.env` file and add your API keys:
 Start the interactive web dashboard:
 
 ```powershell
-python -m shortmaker --web
+python -m reelpilot --web
 ```
 Navigate to `http://localhost:8000` to access the sleek ReelPilot UI!
 
@@ -69,26 +69,26 @@ You can also use the powerful CLI for automation or batch generation:
 
 ```powershell
 # Auto-Pilot Mode (Random topic & hook)
-python -m shortmaker
+python -m reelpilot
 
 # Batch Auto-Pilot Mode (Generate 5 random videos)
-python -m shortmaker --count 5
+python -m reelpilot --count 5
 
 # Specific Topic
-python -m shortmaker "POV: you finally understood async Python" --hook auto --voice aura-orion-en
+python -m reelpilot "POV: you finally understood async Python" --hook auto --voice aura-orion-en
 
 # Force specific background music
-python -m shortmaker "The best productivity hack" --bgm lofi-chill.mp3
+python -m reelpilot "The best productivity hack" --bgm lofi-chill.mp3
 ```
 
 ## 📂 Project Structure
 
-- `src/shortmaker/web.py` — FastAPI web server and UI routes
-- `src/shortmaker/cli.py` — Typer CLI entrypoint and pipeline orchestrator
-- `src/shortmaker/assembly.py` — Hardware-accelerated FFmpeg pipeline
-- `src/shortmaker/broll.py` — Pexels video & image fallback engine
-- `src/shortmaker/effects.py` — Ken Burns effects, color grading, scaling
-- `src/shortmaker/script.py` — LLM prompting and beat structuring
+- `src/reelpilot/web.py` — FastAPI web server and UI routes
+- `src/reelpilot/cli.py` — Typer CLI entrypoint and pipeline orchestrator
+- `src/reelpilot/assembly.py` — Hardware-accelerated FFmpeg pipeline
+- `src/reelpilot/broll.py` — Pexels video & image fallback engine
+- `src/reelpilot/effects.py` — Ken Burns effects, color grading, scaling
+- `src/reelpilot/script.py` — LLM prompting and beat structuring
 
 ## 📄 License
 

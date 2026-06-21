@@ -121,9 +121,9 @@ def run_generation(job_id: str, req: GenerateRequest):
     jobs[job_id] = {"status": "running"}
     log_file = JOBS_DIR / f"{job_id}.log"
     
-    # Run the shortmaker CLI module as a subprocess so we can capture output
+    # Run the reelpilot CLI module as a subprocess so we can capture output
     cmd = [
-        sys.executable, "-m", "shortmaker"
+        sys.executable, "-m", "reelpilot"
     ]
     if req.topic and req.topic.strip():
         cmd.append(req.topic.strip())
@@ -263,4 +263,4 @@ async def save_settings(payload: SettingsPayload):
 
 def start():
     """Starts the Uvicorn server"""
-    uvicorn.run("shortmaker.web:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("reelpilot.web:app", host="0.0.0.0", port=8000, reload=True)

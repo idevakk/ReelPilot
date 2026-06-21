@@ -3,9 +3,9 @@
 import json
 from unittest.mock import patch
 
-from shortmaker.config import Settings
-from shortmaker.models import Script
-from shortmaker.script import _THINK_OPEN, _THINK_CLOSE, _fallback_script, generate
+from reelpilot.config import Settings
+from reelpilot.models import Script
+from reelpilot.script import _THINK_OPEN, _THINK_CLOSE, _fallback_script, generate
 
 
 def _settings(**overrides) -> Settings:
@@ -100,13 +100,13 @@ def test_generate_no_key_uses_fallback():
 
 
 def test_parse_payload_strips_markdown_fences():
-    from shortmaker.script import _parse_payload
+    from reelpilot.script import _parse_payload
     out = _parse_payload("```json\n{\"beats\": []}\n```")
     assert out == {"beats": []}
 
 
 def test_parse_payload_strips_think_block():
-    from shortmaker.script import _parse_payload
+    from reelpilot.script import _parse_payload
     payload = (
         _THINK_OPEN
         + "The user wants a cat-and-dog script. "
@@ -121,7 +121,7 @@ def test_parse_payload_strips_think_block():
 
 
 def test_parse_payload_strips_think_block_and_fences():
-    from shortmaker.script import _parse_payload
+    from reelpilot.script import _parse_payload
     payload = (
         _THINK_OPEN
         + "reasoning here"

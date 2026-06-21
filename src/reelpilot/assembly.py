@@ -239,7 +239,7 @@ def burn_captions(video: Path, audio: Path, ass: Path, dest: Path,
 
     v2: adds a soft vignette overlay for a cinematic feel.
     """
-    fd, tmp_str = tempfile.mkstemp(suffix=".ass", prefix="shortmaker_")
+    fd, tmp_str = tempfile.mkstemp(suffix=".ass", prefix="reelpilot_")
     os.close(fd)
     tmp_ass = Path(tmp_str)
 
@@ -315,7 +315,7 @@ def assemble(
     quality: str = "final",
 ) -> Path:
     """Full pipeline: hook (separate) + body (broll + voice + music + captions)."""
-    work = Path(tempfile.mkdtemp(prefix="shortmaker_", dir=out_path.parent))
+    work = Path(tempfile.mkdtemp(prefix="reelpilot_", dir=out_path.parent))
     try:
         # ── 1. Normalize full hook ──
         hook_norm = work / "hook_norm.mp4"

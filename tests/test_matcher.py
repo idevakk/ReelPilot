@@ -1,7 +1,7 @@
 """Pure-logic tests (no API keys, no network)."""
 
-from shortmaker import matcher
-from shortmaker.hooks import CATALOG, Hook, by_name
+from reelpilot import matcher
+from reelpilot.hooks import CATALOG, Hook, by_name
 
 
 def test_keyword_score_direct_overlap():

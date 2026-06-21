@@ -32,7 +32,7 @@ def get_ass_header() -> str:
         
     return f"""\
 [Script Info]
-Title: shortmaker
+Title: reelpilot
 ScriptType: v4.00+
 WrapStyle: 0
 ScaledBorderAndShadow: yes

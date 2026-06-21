@@ -6,7 +6,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from shortmaker.hooks import fetch_all  # noqa: E402
+from reelpilot.hooks import fetch_all  # noqa: E402
 
 
 def main() -> None:

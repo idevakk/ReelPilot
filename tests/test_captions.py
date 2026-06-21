@@ -2,8 +2,8 @@
 
 from pathlib import Path
 
-from shortmaker.captions import build
-from shortmaker.models import Captions, WordCue
+from reelpilot.captions import build
+from reelpilot.models import Captions, WordCue
 
 
 def test_build_writes_valid_ass_header(tmp_path: Path):

@@ -21,7 +21,7 @@ def extract_frames(video_path: Path, count: int = 3) -> list[str]:
     if duration <= 0:
         return []
         
-    with tempfile.TemporaryDirectory(prefix="shortmaker_vision_") as tmp:
+    with tempfile.TemporaryDirectory(prefix="reelpilot_vision_") as tmp:
         tmp_dir = Path(tmp)
         # extract frames at evenly spaced intervals (e.g., 25%, 50%, 75%)
         for i in range(count):

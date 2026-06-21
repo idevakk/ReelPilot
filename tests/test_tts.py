@@ -4,8 +4,8 @@ import wave
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from shortmaker.audio import write_silence_wav
-from shortmaker.tts import DEFAULT_VOICE, _probe_duration, synthesize
+from reelpilot.audio import write_silence_wav
+from reelpilot.tts import DEFAULT_VOICE, _probe_duration, synthesize
 
 
 def test_probe_duration_returns_float_for_non_wav(tmp_path: Path):
@@ -22,7 +22,7 @@ def test_synthesize_falls_back_to_silence_on_empty_response(tmp_path: Path):
     fake_resp.content = b""
     fake_resp.raise_for_status = MagicMock()
 
-    with patch("shortmaker.tts.requests.post", return_value=fake_resp) as p:
+    with patch("reelpilot.tts.requests.post", return_value=fake_resp) as p:
         dur = synthesize("hello", out, api_key="k", target_seconds=2.0)
 
     assert p.called
@@ -49,7 +49,7 @@ def test_synthesize_uses_default_rest_format_url(tmp_path: Path):
     fake_resp.content = wav_bytes
     fake_resp.raise_for_status = MagicMock()
 
-    with patch("shortmaker.tts.requests.post", return_value=fake_resp) as p:
+    with patch("reelpilot.tts.requests.post", return_value=fake_resp) as p:
         synthesize(
             "hello",
             out,

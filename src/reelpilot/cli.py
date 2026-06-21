@@ -1,13 +1,13 @@
-"""CLI entry point: ``python -m shortmaker "topic"`` or ``shortmaker "topic"``.
+"""CLI entry point: ``python -m reelpilot "topic"`` or ``reelpilot "topic"``.
 
 v2 — Full auto-pilot:
 
-    shortmaker                     # auto mode: random hook → generated topic
-    shortmaker "topic"             # manual topic, auto hook
-    shortmaker "topic" --hook X    # manual everything
-    shortmaker --count 5           # batch auto: 5 videos
-    shortmaker --list-hooks        # show available hooks
-    shortmaker --cache-stats       # show cache statistics
+    reelpilot                     # auto mode: random hook → generated topic
+    reelpilot "topic"             # manual topic, auto hook
+    reelpilot "topic" --hook X    # manual everything
+    reelpilot --count 5           # batch auto: 5 videos
+    reelpilot --list-hooks        # show available hooks
+    reelpilot --cache-stats       # show cache statistics
 """
 
 from __future__ import annotations
@@ -100,7 +100,7 @@ def _make_one_video(
     s.ensure_paths()
     t0 = time.time()
 
-    console.rule(f"[bold]shortmaker[/bold] — video #{video_num}")
+    console.rule(f"[bold]reelpilot[/bold] — video #{video_num}")
 
     # ── Hook selection ──
     if topic is None:
@@ -320,12 +320,12 @@ def main(
 
     \b
     Auto mode (no topic):
-        shortmaker                     -> random hook + generated topic
-        shortmaker --count 5           -> batch: 5 auto videos
+        reelpilot                     -> random hook + generated topic
+        reelpilot --count 5           -> batch: 5 auto videos
     \b
     Manual mode:
-        shortmaker "crazy dog dance"   -> your topic, best-fit hook
-        shortmaker "topic" --hook X    -> your topic + specific hook
+        reelpilot "crazy dog dance"   -> your topic, best-fit hook
+        reelpilot "topic" --hook X    -> your topic + specific hook
     """
 
     # ── Utility commands ──

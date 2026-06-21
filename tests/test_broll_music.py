@@ -2,7 +2,7 @@
 
 import responses
 
-from shortmaker import broll, music
+from reelpilot import broll, music
 
 
 @responses.activate

@@ -3,8 +3,8 @@
 from pathlib import Path
 from unittest.mock import patch
 
-from shortmaker import assembly
-from shortmaker.assembly import _escape_ass_path
+from reelpilot import assembly
+from reelpilot.assembly import _escape_ass_path
 
 
 def test_escape_ass_path_escapes_all_special_chars():
@@ -48,7 +48,7 @@ def test_burn_captions_uses_escaped_path_in_filter(tmp_path):
 
     # Pre-create the fake temp ASS file so write_bytes/read_bytes round-trip
     # works without touching the real OS temp dir.
-    fake_tmp = tmp_path / "shortmaker_tmp.ass"
+    fake_tmp = tmp_path / "reelpilot_tmp.ass"
     fake_tmp.write_bytes(b"")
 
     with patch.object(assembly.tempfile, "mkstemp") as mock_mkstemp, \
