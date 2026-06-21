@@ -175,9 +175,13 @@ def _make_one_video(
     console.print(f"[dim]Voiceover: {voice_dur:.1f}s (est. ${cost:.4f} Deepgram)")
 
     # ── STT for word timings ──
-    console.print("[yellow]Loading faster-whisper (first run downloads ~460 MB)…[/yellow]")
+    if s.deepgram_api_key:
+        console.print("[yellow]Using Deepgram STT for ultra-fast word timings...[/yellow]")
+    else:
+        console.print("[yellow]Loading faster-whisper (first run downloads ~460 MB)…[/yellow]")
+        
     with console.status("[bold green]Transcribing word timings..."):
-        captions_obj = stt.transcribe_to_json(voice_wav, captions_json)
+        captions_obj = stt.transcribe_to_json(voice_wav, captions_json, api_key=s.deepgram_api_key)
     console.print(f"[cyan]Captions:[/cyan] {len(captions_obj.cues)} words")
 
     # ── Build ASS with emphasis ──
