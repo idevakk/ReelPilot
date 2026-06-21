@@ -5,13 +5,13 @@ import subprocess
 import json
 import sys
 from pathlib import Path
-from fastapi import FastAPI, Request, BackgroundTasks
+from fastapi import FastAPI, Request, BackgroundTasks, UploadFile, File
 from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 import uvicorn
 
-from .config import OUTPUT_DIR
+from .config import OUTPUT_DIR, MUSIC_LIBRARY_DIR
 
 app = FastAPI(title="ShortMaker Web UI")
 
@@ -70,6 +70,36 @@ async def list_videos():
     
     videos.sort(key=lambda x: x["created_at"], reverse=True)
     return {"videos": videos}
+
+@app.get("/api/music")
+async def list_music():
+    if not MUSIC_LIBRARY_DIR.exists():
+        return {"music": []}
+    
+    music_files = []
+    for p in MUSIC_LIBRARY_DIR.glob("*.*"):
+        if p.suffix.lower() in (".mp3", ".wav", ".m4a"):
+            music_files.append({"name": p.name, "size": p.stat().st_size})
+            
+    music_files.sort(key=lambda x: x["name"])
+    return {"music": music_files}
+
+@app.post("/api/music")
+async def upload_music(file: UploadFile = File(...)):
+    MUSIC_LIBRARY_DIR.mkdir(parents=True, exist_ok=True)
+    file_path = MUSIC_LIBRARY_DIR / file.filename
+    with open(file_path, "wb") as f:
+        content = await file.read()
+        f.write(content)
+    return {"success": True, "filename": file.filename}
+
+@app.delete("/api/music/{filename}")
+async def delete_music(filename: str):
+    file_path = MUSIC_LIBRARY_DIR / filename
+    if file_path.exists():
+        file_path.unlink()
+        return {"success": True}
+    return JSONResponse({"error": "File not found"}, status_code=404)
 
 class GenerateRequest(BaseModel):
     topic: str | None = None
