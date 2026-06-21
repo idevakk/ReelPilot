@@ -557,14 +557,16 @@
                     <div class="video-info">
                         <div class="video-title" title="${v.id}">${v.id.replace(/_\d+$/, '')}</div>
                         <div class="video-meta">${date}</div>
-                        ${socialCaption ? `<button onclick="copyCaption(this)" data-caption="${encodeURIComponent(socialCaption)}" style="background: rgba(139, 92, 246, 0.2); color: #a78bfa; padding: 0.3rem 0.5rem; font-size: 0.75rem; border: 1px solid rgba(139, 92, 246, 0.4); border-radius: 4px; cursor: pointer; margin-bottom: 0.75rem; width: 100%; text-align: center; transition: all 0.2s;">📋 Copy Caption</button>` : ''}
                         <div class="video-stats">
                             <div class="stat-item"><span class="stat-label">Time</span><span class="stat-value">${timeTaken}</span></div>
                             <div class="stat-item"><span class="stat-label">Cost</span><span class="stat-value">${totalCost}</span></div>
                             <div class="stat-item"><span class="stat-label">LLM</span><span class="stat-value">${llmCost}</span></div>
                             <div class="stat-item"><span class="stat-label">Voice</span><span class="stat-value">${deepgramCost}</span></div>
                         </div>
-                        <a href="${v.url}" download class="download-btn">Download MP4</a>
+                        <div style="display: flex; gap: 0.5rem; margin-top: auto;">
+                            <a href="${v.url}" download class="download-btn" style="margin-top: 0; flex: 1; padding: 0.5rem; font-size: 0.8rem;">Download MP4</a>
+                            ${socialCaption ? `<button onclick="copyCaption(this)" data-caption="${encodeURIComponent(socialCaption)}" class="download-btn" style="margin-top: 0; flex: 1; padding: 0.5rem; font-size: 0.8rem; background: rgba(139, 92, 246, 0.2); color: #a78bfa; border: 1px solid rgba(139, 92, 246, 0.4);">📋 Copy Caption</button>` : ''}
+                        </div>
                     </div>
                 `;
                     gallery.appendChild(card);
