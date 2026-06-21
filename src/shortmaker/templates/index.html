@@ -148,7 +148,7 @@
 
         .gallery {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
             gap: 1.5rem;
         }
 
@@ -158,22 +158,30 @@
             overflow: hidden;
             border: 1px solid rgba(255,255,255,0.05);
             transition: transform 0.2s;
+            display: flex;
+            height: 220px;
         }
 
         .video-card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-3px);
             border-color: rgba(255,255,255,0.1);
         }
 
         video {
-            width: 100%;
+            height: 100%;
+            width: auto;
             aspect-ratio: 9/16;
             object-fit: cover;
             background: #000;
+            flex-shrink: 0;
         }
 
         .video-info {
             padding: 1rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
         }
 
         .video-title {
@@ -231,6 +239,7 @@
             border-radius: 6px;
             font-size: 0.9rem;
             transition: background 0.2s;
+            margin-top: auto;
         }
 
         .download-btn:hover {
