@@ -406,7 +406,8 @@
                 grid-template-columns: 1fr;
             }
 
-            .settings-btn .btn-text {
+            .settings-btn .btn-text,
+            .download-btn .btn-text {
                 display: none;
             }
             .settings-btn {
@@ -564,8 +565,10 @@
                             <div class="stat-item"><span class="stat-label">Voice</span><span class="stat-value">${deepgramCost}</span></div>
                         </div>
                         <div style="display: flex; gap: 0.5rem; margin-top: auto;">
-                            <a href="${v.url}" download class="download-btn" style="margin-top: 0; flex: 1; padding: 0.5rem; font-size: 0.8rem;">Download MP4</a>
-                            ${socialCaption ? `<button onclick="copyCaption(this)" data-caption="${encodeURIComponent(socialCaption)}" class="download-btn" style="margin-top: 0; flex: 1; padding: 0.5rem; font-size: 0.8rem; background: rgba(139, 92, 246, 0.2); color: #a78bfa; border: 1px solid rgba(139, 92, 246, 0.4);">📋 Copy Caption</button>` : ''}
+                            <a href="${v.url}" download class="download-btn" style="margin-top: 0; flex: 1; padding: 0.5rem; font-size: 0.8rem; display: flex; justify-content: center; align-items: center; gap: 0.25rem; white-space: nowrap;">
+                                <span>⬇️</span><span class="btn-text">Download MP4</span>
+                            </a>
+                            ${socialCaption ? `<button onclick="copyCaption(this)" data-caption="${encodeURIComponent(socialCaption)}" class="download-btn" style="margin-top: 0; flex: 1; padding: 0.5rem; font-size: 0.8rem; background: rgba(139, 92, 246, 0.2); color: #a78bfa; border: 1px solid rgba(139, 92, 246, 0.4); display: flex; justify-content: center; align-items: center; gap: 0.25rem; white-space: nowrap;"><span>📋</span><span class="btn-text">Copy Caption</span></button>` : ''}
                         </div>
                     </div>
                 `;
@@ -751,7 +754,7 @@
             
             function showSuccess() {
                 const originalText = btn.innerHTML;
-                btn.innerHTML = '✅ Copied!';
+                btn.innerHTML = '<span>✅</span><span class="btn-text">Copied!</span>';
                 btn.style.background = 'rgba(34, 197, 94, 0.2)';
                 btn.style.borderColor = 'rgba(34, 197, 94, 0.4)';
                 btn.style.color = '#4ade80';
