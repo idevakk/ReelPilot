@@ -41,6 +41,9 @@ class Script(BaseModel):
     prompt_tokens: int = 0
     completion_tokens: int = 0
     estimated_cost_usd: float = 0.0
+    
+    # Social media output
+    social_caption: str = ""
 
     @property
     def full_narration(self) -> str:

@@ -103,7 +103,8 @@ Return strict JSON with this shape:
       "caption_emphasis": [],
       "speed": "normal"
     }}
-  ]
+  ],
+  "social_caption": "Write an engaging caption for TikTok/Instagram/YouTube Shorts here, including 3-5 relevant hashtags."
 }}
 
 STORYTELLING RULES (follow ALL):
@@ -343,7 +344,12 @@ def _fallback_script(topic: str, hook_name: str) -> Script:
         transition_hint="fade",
         caption_emphasis=["honest"],
     ))
-    return Script(topic=topic, hook_name=hook_name, beats=beats)
+    return Script(
+        topic=topic, 
+        hook_name=hook_name, 
+        beats=beats,
+        social_caption=f"You won't believe this fact about {topic}! 🤯 #shorts #viral #facts"
+    )
 
 
 # ─── main entry point ────────────────────────────────────────────────────
@@ -371,6 +377,7 @@ def generate(
             raw, p_tok, c_tok = _call_llm(topic, hook_name, hook_desc, settings, duration=dur_range)
             data = _parse_payload(raw)
             beats = [Beat(**b) for b in data["beats"]]
+            social_caption = data.get("social_caption", f"Wait until the end... #shorts #viral")
             
             # Simple OpenAI standard estimation: $0.15/1M input, $0.60/1M output for gpt-4o-mini
             cost = (p_tok * 0.15 + c_tok * 0.60) / 1000000.0
@@ -381,7 +388,8 @@ def generate(
                 beats=beats,
                 prompt_tokens=p_tok,
                 completion_tokens=c_tok,
-                estimated_cost_usd=cost
+                estimated_cost_usd=cost,
+                social_caption=social_caption
             )
         except (ValidationError, KeyError, json.JSONDecodeError) as exc:
             last_err = exc
