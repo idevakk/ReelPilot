@@ -127,14 +127,18 @@ def normalize_clip(src: Path, dest: Path, target_dur: float,
                    speed: str = "normal") -> Path:
     """Scale + crop + Ken Burns (varied motion) + optional speed ramp."""
     vf = effects.normalize_filter(target_dur, motion=motion, speed=speed)
-    _run([
-        "ffmpeg", "-y", "-i", str(src),
+    cmd = ["ffmpeg", "-y"]
+    if str(src).lower().endswith((".jpg", ".jpeg", ".png")):
+        cmd += ["-loop", "1"]
+    cmd += [
+        "-i", str(src),
         "-vf", vf,
         "-t", str(target_dur),
         "-an",
         *ENCODE_ARGS,
         str(dest),
-    ], desc=f"Normalising b-roll", total_duration=target_dur)
+    ]
+    _run(cmd, desc=f"Normalising b-roll", total_duration=target_dur)
     return dest
 
 

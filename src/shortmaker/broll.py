@@ -19,6 +19,7 @@ from .config import BROLL_DIR
 from .http import stream_download
 
 PEXELS_SEARCH_URL = "https://api.pexels.com/videos/search"
+PEXELS_PHOTO_SEARCH_URL = "https://api.pexels.com/v1/search"
 DEFAULT_PER_PAGE = 5
 
 
@@ -26,9 +27,10 @@ def _sha1_short(s: str) -> str:
     return hashlib.sha1(s.encode("utf-8")).hexdigest()[:10]
 
 
-def _cache_path(keywords: Iterable[str]) -> Path:
+def _cache_path(keywords: Iterable[str], is_image: bool = False) -> Path:
     joined = "|".join(sorted(k.strip().lower() for k in keywords))
-    return BROLL_DIR / f"{_sha1_short(joined)}.mp4"
+    ext = ".jpg" if is_image else ".mp4"
+    return BROLL_DIR / f"{_sha1_short(joined)}{ext}"
 
 
 def search(query: str, api_key: str | None, per_page: int = DEFAULT_PER_PAGE,
@@ -45,6 +47,21 @@ def search(query: str, api_key: str | None, per_page: int = DEFAULT_PER_PAGE,
     resp = requests.get(PEXELS_SEARCH_URL, headers=headers, params=params, timeout=30)
     resp.raise_for_status()
     return resp.json().get("videos", [])
+
+
+def search_image(query: str, api_key: str | None, per_page: int = DEFAULT_PER_PAGE,
+                 orientation: str = "portrait") -> list[dict]:
+    if not api_key:
+        return []
+    headers = {"Authorization": api_key}
+    params = {
+        "query": query,
+        "per_page": per_page,
+        "orientation": orientation,
+    }
+    resp = requests.get(PEXELS_PHOTO_SEARCH_URL, headers=headers, params=params, timeout=30)
+    resp.raise_for_status()
+    return resp.json().get("photos", [])
 
 
 def _select_file(video: dict, target_seconds: float) -> str | None:
@@ -92,34 +109,55 @@ def download(query: str, api_key: str | None,
             cache.store_broll(dest, q, [q])
             return dest
 
-    # ── 3. fetch from Pexels API ──────────────────────────────
+    # ── 3. fetch from Pexels API (Videos First) ──────────────────────
     for q in queries:
-        dest = _cache_path([q])
+        dest = _cache_path([q], is_image=False)
         try:
             videos = search(q, api_key)
         except Exception as exc:
-            sys.stderr.write(f"  Pexels search failed for {q!r}: {exc}\n")
+            sys.stderr.write(f"  Pexels video search failed for {q!r}: {exc}\n")
             continue
-        for v in videos:
-            url = _select_file(v, target_seconds)
+            
+        if videos:
+            for v in videos:
+                url = _select_file(v, target_seconds)
+                if not url:
+                    continue
+                try:
+                    stream_download(url, dest, timeout=60)
+                    cache.store_broll(
+                        path=dest, query=q, keywords=queries, duration_s=v.get("duration"),
+                        source="pexels_video", source_id=str(v.get("id", "")),
+                        width=v.get("width"), height=v.get("height"), tags=[q],
+                    )
+                    return dest
+                except Exception as exc:
+                    sys.stderr.write(f"  video download failed {url}: {exc}\n")
+                    continue
+            
+        # ── 4. fallback to Pexels Photos ───────────────────────────────
+        sys.stderr.write(f"  No valid videos for {q!r}, trying images...\n")
+        img_dest = _cache_path([q], is_image=True)
+        try:
+            photos = search_image(q, api_key)
+        except Exception as exc:
+            sys.stderr.write(f"  Pexels photo search failed for {q!r}: {exc}\n")
+            continue
+            
+        for p in photos:
+            url = p.get("src", {}).get("large2x") or p.get("src", {}).get("original")
             if not url:
                 continue
             try:
-                stream_download(url, dest, timeout=60)
-                # Store in SQLite cache with metadata
+                stream_download(url, img_dest, timeout=60)
                 cache.store_broll(
-                    path=dest,
-                    query=q,
-                    keywords=queries,
-                    duration_s=v.get("duration"),
-                    source="pexels",
-                    source_id=str(v.get("id", "")),
-                    width=v.get("width"),
-                    height=v.get("height"),
-                    tags=[q],
+                    path=img_dest, query=q, keywords=queries, duration_s=0,
+                    source="pexels_photo", source_id=str(p.get("id", "")),
+                    width=p.get("width"), height=p.get("height"), tags=[q],
                 )
-                return dest
+                return img_dest
             except Exception as exc:
-                sys.stderr.write(f"  download failed {url}: {exc}\n")
+                sys.stderr.write(f"  image download failed {url}: {exc}\n")
                 continue
+
     return None
