@@ -153,13 +153,14 @@ def _scrape_hooks() -> list[str]:
     
     urls = [
         "https://transitionalhooks.com/social-media-video-hook-library/",
-        "https://transitionalhooks.com/social-media-video-hook-library/page/2/"
+        "https://transitionalhooks.com/social-media-video-hook-library/page/2/",
+        "https://onlinepath.com.au/blog/100-best-viral-video-hooks-2024/"
     ]
     videos = set()
     for url in urls:
         try:
             r = requests.get(url, timeout=10)
-            found = re.findall(r'https://transitionalhooks\.com/wp-content/uploads/[^"\']+\.mp4', r.text)
+            found = re.findall(r'https://[^"\']+\.mp4', r.text)
             videos.update(found)
         except Exception:
             pass
