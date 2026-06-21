@@ -59,7 +59,7 @@ async def list_videos():
             mp4_file = folder / f"{folder.name}.mp4"
             if mp4_file.exists():
                 sidecar_file = folder / f"{folder.name}.txt"
-                sidecar_content = sidecar_file.read_text(encoding="utf-8") if sidecar_file.exists() else ""
+                sidecar_content = sidecar_file.read_text(encoding="utf-8", errors="replace") if sidecar_file.exists() else ""
                 
                 videos.append({
                     "id": folder.name,
@@ -93,11 +93,14 @@ def run_generation(job_id: str, req: GenerateRequest):
     ])
     
     with open(log_file, "w", encoding="utf-8") as f:
+        env = os.environ.copy()
+        env["PYTHONIOENCODING"] = "utf-8"
         process = subprocess.Popen(
             cmd,
             stdout=f,
             stderr=subprocess.STDOUT,
-            text=True
+            text=True,
+            env=env
         )
         process.wait()
         
@@ -120,7 +123,7 @@ async def generate_video(req: GenerateRequest, bg_tasks: BackgroundTasks):
 @app.get("/api/jobs/{job_id}")
 async def get_job_status(job_id: str):
     log_file = JOBS_DIR / f"{job_id}.log"
-    logs = log_file.read_text(encoding="utf-8") if log_file.exists() else ""
+    logs = log_file.read_text(encoding="utf-8", errors="replace") if log_file.exists() else ""
     
     status = jobs.get(job_id, {}).get("status", "unknown")
     
