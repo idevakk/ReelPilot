@@ -136,12 +136,18 @@ def _call_llm(
 ) -> str:
     from openai import OpenAI
 
-    client = OpenAI(
-        api_key=settings.openai_api_key,
-        base_url=settings.openai_base_url,
-    )
+    api_key = settings.openai_api_key
+    base_url = settings.openai_base_url
+    model = settings.openai_model
+
+    if settings.use_gemini_script and settings.gemini_api_key:
+        api_key = settings.gemini_api_key
+        base_url = "https://generativelanguage.googleapis.com/v1beta/openai/"
+        model = "gemini-2.5-flash"
+
+    client = OpenAI(api_key=api_key, base_url=base_url)
     resp = client.chat.completions.create(
-        model=settings.openai_model,
+        model=model,
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
             {
@@ -152,7 +158,7 @@ def _call_llm(
             },
         ],
         response_format={"type": "json_object"},
-        max_tokens=8000,
+        max_tokens=20000,
         temperature=0.85,
     )
     return resp.choices[0].message.content or "{}"
@@ -160,7 +166,17 @@ def _call_llm(
 
 def generate_topic(hook: Hook, settings: Settings) -> str:
     """Use the LLM to invent a viral topic that matches *hook*'s energy."""
-    if not settings.openai_api_key:
+    
+    api_key = settings.openai_api_key
+    base_url = settings.openai_base_url
+    model = settings.openai_model
+
+    if settings.use_gemini_script and settings.gemini_api_key:
+        api_key = settings.gemini_api_key
+        base_url = "https://generativelanguage.googleapis.com/v1beta/openai/"
+        model = "gemini-2.5-flash"
+
+    if not api_key:
         # Offline fallback: pick from the hook's own seeds.
         if hook.topic_seeds:
             return random.choice(hook.topic_seeds)
@@ -168,10 +184,7 @@ def generate_topic(hook: Hook, settings: Settings) -> str:
 
     from openai import OpenAI
 
-    client = OpenAI(
-        api_key=settings.openai_api_key,
-        base_url=settings.openai_base_url,
-    )
+    client = OpenAI(api_key=api_key, base_url=base_url)
     seeds_text = "\n".join(f"- {s}" for s in (hook.topic_seeds or hook.tags))
     prompt = TOPIC_PROMPT.format(
         hook_name=hook.name,
@@ -181,9 +194,9 @@ def generate_topic(hook: Hook, settings: Settings) -> str:
     )
     try:
         resp = client.chat.completions.create(
-            model=settings.openai_model,
+            model=model,
             messages=[{"role": "user", "content": prompt}],
-            max_tokens=150,
+            max_tokens=20000,
             temperature=0.95,
         )
         text = (resp.choices[0].message.content or "").strip()
