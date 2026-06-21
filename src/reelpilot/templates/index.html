@@ -272,7 +272,7 @@
             border: 1px solid rgba(255, 255, 255, 0.05);
             transition: transform 0.2s;
             display: flex;
-            height: 260px;
+            height: 220px;
         }
 
         .video-card:hover {
@@ -563,9 +563,9 @@
                             <div class="stat-item"><span class="stat-label">LLM</span><span class="stat-value">${llmCost}</span></div>
                             <div class="stat-item"><span class="stat-label">Voice</span><span class="stat-value">${deepgramCost}</span></div>
                         </div>
-                        <div style="display: flex; gap: 0.5rem; margin-top: auto; flex-wrap: wrap;">
-                            <a href="${v.url}" download class="download-btn" style="margin-top: 0; flex: 1; min-width: 120px; padding: 0.5rem; font-size: 0.8rem;">Download MP4</a>
-                            ${socialCaption ? `<button onclick="copyCaption(this)" data-caption="${encodeURIComponent(socialCaption)}" class="download-btn" style="margin-top: 0; flex: 1; min-width: 120px; padding: 0.5rem; font-size: 0.8rem; background: rgba(139, 92, 246, 0.2); color: #a78bfa; border: 1px solid rgba(139, 92, 246, 0.4);">📋 Copy Caption</button>` : ''}
+                        <div style="display: flex; gap: 0.5rem; margin-top: auto;">
+                            <a href="${v.url}" download class="download-btn" style="margin-top: 0; flex: 1; padding: 0.5rem; font-size: 0.8rem;">Download MP4</a>
+                            ${socialCaption ? `<button onclick="copyCaption(this)" data-caption="${encodeURIComponent(socialCaption)}" class="download-btn" style="margin-top: 0; flex: 1; padding: 0.5rem; font-size: 0.8rem; background: rgba(139, 92, 246, 0.2); color: #a78bfa; border: 1px solid rgba(139, 92, 246, 0.4);">📋 Copy Caption</button>` : ''}
                         </div>
                     </div>
                 `;
@@ -749,7 +749,7 @@
         function copyCaption(btn) {
             const text = decodeURIComponent(btn.getAttribute('data-caption'));
             
-            const handleSuccess = () => {
+            function showSuccess() {
                 const originalText = btn.innerHTML;
                 btn.innerHTML = '✅ Copied!';
                 btn.style.background = 'rgba(34, 197, 94, 0.2)';
@@ -761,27 +761,26 @@
                     btn.style.borderColor = 'rgba(139, 92, 246, 0.4)';
                     btn.style.color = '#a78bfa';
                 }, 2000);
-            };
+            }
 
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(text).then(handleSuccess).catch(err => {
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text).then(showSuccess).catch(err => {
                     console.error('Failed to copy: ', err);
                     alert("Failed to copy caption");
                 });
             } else {
-                // Fallback for non-HTTPS/local environments
-                const textArea = document.createElement("textarea");
+                let textArea = document.createElement("textarea");
                 textArea.value = text;
-                textArea.style.position = "fixed"; // prevent scrolling
-                textArea.style.left = "-9999px";
+                textArea.style.position = "fixed";  // Avoid scrolling to bottom
                 document.body.appendChild(textArea);
                 textArea.focus();
                 textArea.select();
                 try {
-                    document.execCommand('copy');
-                    handleSuccess();
+                    let successful = document.execCommand('copy');
+                    if (successful) showSuccess();
+                    else alert("Failed to copy caption");
                 } catch (err) {
-                    console.error('Fallback copy failed: ', err);
+                    console.error('Fallback: Oops, unable to copy', err);
                     alert("Failed to copy caption");
                 }
                 document.body.removeChild(textArea);
