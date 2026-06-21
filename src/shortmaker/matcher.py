@@ -71,7 +71,7 @@ def rerank_with_llm(topic: str, candidates: list[Hook], api_key: str | None,
         resp = client.chat.completions.create(
             model=model or "gpt-4o-mini",
             messages=[{"role": "user", "content": prompt}],
-            max_tokens=20,
+            max_tokens=20000,
             temperature=0.0,
         )
         text = (resp.choices[0].message.content or "").strip()
