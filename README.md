@@ -60,6 +60,9 @@ python -m shortmaker --web
 ```
 Navigate to `http://localhost:8000` to access the sleek ShortMaker Studio UI!
 
+> [!WARNING]  
+> **Security Note:** The Web UI includes a built-in Settings panel that allows you to view and edit your API keys. It is designed for **local use only**. If you plan to host this Web UI on a public-facing server, you **must** implement authentication (e.g., HTTP Basic Auth or a login system) or your API keys will be exposed to the internet.
+
 ### Command Line Interface
 
 You can also use the powerful CLI for automation or batch generation:
