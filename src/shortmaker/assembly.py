@@ -187,7 +187,7 @@ def mix_audio(voice: Path, music: Path, total_dur: float,
         f"volume=0.40[mus];"
         f"[mus][voice]sidechaincompress=threshold=0.04:ratio=10:"
         f"attack=3:release=300:makeup=1[duck];"
-        f"[voice][duck]amix=inputs=2:duration=first:dropout_transition=0,volume=2.0[mix]"
+        f"[voice][duck]amix=inputs=2:duration=longest:dropout_transition=0,volume=2.0[mix]"
     )
     _run([
         "ffmpeg", "-y",
