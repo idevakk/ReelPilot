@@ -241,14 +241,18 @@ def _parse_payload(payload: str) -> dict[str, Any]:
     """Parse LLM response as JSON, stripping think blocks and code fences."""
     text = _strip_think(payload.strip())
 
-    # Strip markdown code fences
-    if text.startswith("```"):
-        first_nl = text.find("\n")
-        text = text[first_nl + 1:] if first_nl != -1 else text.lstrip("`")
-        if text.endswith("```"):
-            text = text[:-3]
-        text = text.strip()
-        
+    import re
+    # Try to find JSON inside markdown code blocks
+    match = re.search(r"```(?:json)?\s*(\{.*\}|\[.*\])\s*```", text, re.DOTALL)
+    if match:
+        text = match.group(1)
+    else:
+        # Fallback: extract the outermost JSON object
+        start = text.find("{")
+        end = text.rfind("}")
+        if start != -1 and end != -1 and end > start:
+            text = text[start:end+1]
+
     if not text.strip():
         text = "{}"
 
