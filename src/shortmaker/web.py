@@ -14,7 +14,7 @@ import dotenv
 
 from .config import OUTPUT_DIR, MUSIC_LIBRARY_DIR, STATIC_DIR, PROJECT_ROOT
 
-app = FastAPI(title="ShortMaker Web UI")
+app = FastAPI(title="ReelPilot")
 
 # Make sure output directory exists
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)

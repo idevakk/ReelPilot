@@ -2,7 +2,7 @@
   <img src="assets/static/favicon.png" alt="ShortMaker Logo" width="120" />
 </div>
 
-<h1 align="center">ShortMaker Studio</h1>
+<h1 align="center">ReelPilot</h1>
 
 <p align="center">
   <strong>An automated, AI-powered 9:16 short-form video generator with a sleek Web UI.</strong><br>
@@ -58,7 +58,7 @@ Start the interactive web dashboard:
 ```powershell
 python -m shortmaker --web
 ```
-Navigate to `http://localhost:8000` to access the sleek ShortMaker Studio UI!
+Navigate to `http://localhost:8000` to access the sleek ReelPilot UI!
 
 > [!WARNING]  
 > **Security Note:** The Web UI includes a built-in Settings panel that allows you to view and edit your API keys. It is designed for **local use only**. If you plan to host this Web UI on a public-facing server, you **must** implement authentication (e.g., HTTP Basic Auth or a login system) or your API keys will be exposed to the internet.
