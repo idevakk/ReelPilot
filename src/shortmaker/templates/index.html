@@ -27,26 +27,27 @@
         }
 
         body {
+            font-family: 'Inter', sans-serif;
             background-color: var(--bg);
             color: var(--text);
-            min-height: 100vh;
+            height: 100vh;
+            overflow: hidden;
             display: flex;
             flex-direction: column;
+            margin: 0;
         }
 
         header {
-            background: rgba(30, 41, 59, 0.8);
-            backdrop-filter: blur(12px);
             padding: 1.5rem 2rem;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            position: sticky;
-            top: 0;
-            z-index: 100;
+            background: var(--surface);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            flex-shrink: 0;
         }
 
-        h1 {
-            font-size: 1.8rem;
+        header h1 {
+            font-size: 1.5rem;
             font-weight: 800;
+            margin: 0;
             background: linear-gradient(135deg, #a855f7, #ec4899);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -55,13 +56,14 @@
 
         main {
             flex: 1;
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
             padding: 2rem;
             width: 100%;
             display: grid;
             grid-template-columns: 350px 1fr;
             gap: 2rem;
+            min-height: 0;
         }
 
         .panel {
@@ -70,6 +72,7 @@
             padding: 1.5rem;
             border: 1px solid rgba(255,255,255,0.05);
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow-y: auto;
         }
 
         h2 {
