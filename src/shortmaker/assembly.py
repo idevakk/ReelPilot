@@ -19,6 +19,8 @@ import shutil
 import subprocess
 import tempfile
 from pathlib import Path
+import re
+from rich.progress import Progress, TextColumn, BarColumn, TimeRemainingColumn
 
 from . import effects
 from .models import Beat, Captions, Script
@@ -50,10 +52,41 @@ ENCODE_ARGS_FINAL: list[str] = [
 ]
 
 
-def _run(cmd: list[str]) -> None:
-    """Run an ffmpeg/ffprobe command; raise on failure."""
-    print("  ffmpeg:", " ".join(cmd))
-    subprocess.run(cmd, check=True)
+def _run(cmd: list[str], desc: str | None = None, total_duration: float = 0.0) -> None:
+    """Run an ffmpeg/ffprobe command. If desc is provided, show a progress bar."""
+    if desc and total_duration > 0 and cmd[0] == "ffmpeg":
+        cmd = [cmd[0], "-hide_banner", "-loglevel", "info", "-nostats"] + cmd[1:]
+        process = subprocess.Popen(
+            cmd, 
+            stderr=subprocess.PIPE, 
+            stdout=subprocess.DEVNULL, 
+            universal_newlines=True, 
+            encoding='utf-8', 
+            errors='replace'
+        )
+        time_regex = re.compile(r"time=(\d+):(\d+):(\d+\.\d+)")
+        with Progress(
+            TextColumn("[progress.description]{task.description}"),
+            BarColumn(),
+            TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
+            TimeRemainingColumn(),
+            transient=True
+        ) as progress:
+            task_id = progress.add_task(f"[cyan]{desc}...", total=total_duration)
+            if process.stderr:
+                for line in process.stderr:
+                    match = time_regex.search(line)
+                    if match:
+                        h, m, s = match.groups()
+                        current_time = int(h) * 3600 + int(m) * 60 + float(s)
+                        progress.update(task_id, completed=min(current_time, total_duration))
+        process.wait()
+        if process.returncode != 0:
+            raise subprocess.CalledProcessError(process.returncode, cmd)
+    else:
+        if cmd[0] == "ffmpeg":
+            cmd = [cmd[0], "-hide_banner", "-loglevel", "error"] + cmd[1:]
+        subprocess.run(cmd, check=True)
 
 
 def _ffprobe_duration(path: Path) -> float:
@@ -86,7 +119,7 @@ def trim_hook(hook_path: Path, dest: Path,
         "-an",
         *ENCODE_ARGS,
         str(dest),
-    ])
+    ], desc="Trimming Hook", total_duration=eff)
     return dest
 
 
@@ -102,7 +135,7 @@ def normalize_clip(src: Path, dest: Path, target_dur: float,
         "-an",
         *ENCODE_ARGS,
         str(dest),
-    ])
+    ], desc=f"Normalising b-roll", total_duration=target_dur)
     return dest
 
 
@@ -112,7 +145,7 @@ def xfade_clips(clips: list[Path],
                 clip_durations: list[float],
                 energies: list[str],
                 transition_hints: list[str],
-                dest: Path) -> Path:
+                dest: Path) -> tuple[Path, float]:
     """Chain-xfade all clips with energy-aware transitions.
 
     Replaces the old ``concat_clips`` hard-cut demuxer with smooth
@@ -121,7 +154,7 @@ def xfade_clips(clips: list[Path],
     if len(clips) < 2:
         # Single clip — just copy
         shutil.copy2(clips[0], dest)
-        return dest
+        return dest, clip_durations[0]
 
     filter_body, _total_dur = effects.build_xfade_chain(
         clip_durations, energies, transition_hints,
@@ -136,8 +169,8 @@ def xfade_clips(clips: list[Path],
         *ENCODE_ARGS,
         str(dest),
     ]
-    _run(cmd)
-    return dest
+    _run(cmd, desc="Crossfading Clips", total_duration=_total_dur)
+    return dest, _total_dur
 
 
 # ─── step 3: audio mix ───────────────────────────────────────────────────
@@ -167,7 +200,7 @@ def mix_audio(voice: Path, music: Path, total_dur: float,
         "-c:a", "aac", "-b:a", "320k", "-ar", "48000",
         "-ac", "2",
         str(dest),
-    ])
+    ], desc="Mixing Audio", total_duration=total_dur)
     return dest
 
 
@@ -189,7 +222,7 @@ def _escape_ass_path(path: Path) -> str:
 
 
 def burn_captions(video: Path, audio: Path, ass: Path, dest: Path,
-                  quality: str = "final") -> Path:
+                  total_dur: float, quality: str = "final") -> Path:
     """Combine video + audio + burned ASS subtitles + subtle vignette.
 
     v2: adds a soft vignette overlay for a cinematic feel.
@@ -220,7 +253,7 @@ def burn_captions(video: Path, audio: Path, ass: Path, dest: Path,
             "-movflags", "+faststart",
             "-shortest",
             str(dest),
-        ])
+        ], desc="Burning Captions", total_duration=total_dur)
     finally:
         tmp_ass.unlink(missing_ok=True)
     return dest
@@ -270,15 +303,14 @@ def assemble(
 
         # ── 3. xfade transition chain ──
         xfaded = work / "xfaded.mp4"
-        xfade_clips(normed, durations, energies, hints, xfaded)
+        xfaded, actual_dur = xfade_clips(normed, durations, energies, hints, xfaded)
 
         # ── 4. Audio mix ──
-        total_dur = sum(durations)
         audio = work / "mixed.m4a"
-        mix_audio(voice, music, total_dur=total_dur, dest=audio)
+        mix_audio(voice, music, total_dur=actual_dur, dest=audio)
 
         # ── 5. Burn captions + vignette → final output ──
-        burn_captions(xfaded, audio, captions_ass, out_path, quality=quality)
+        burn_captions(xfaded, audio, captions_ass, out_path, actual_dur, quality=quality)
 
     finally:
         shutil.rmtree(work, ignore_errors=True)

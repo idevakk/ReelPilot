@@ -303,9 +303,7 @@ def main(
 
     # ── Video generation ──
     if topic is None:
-        console.print(
-            f"[bold magenta]🎬 Auto-pilot mode — generating {count} video(s)[/bold magenta]"
-        )
+        console.print(f"[bold magenta]*** Auto-pilot mode - generating {count} video(s)[/bold magenta]")
 
     outputs: list[Path] = []
     for i in range(count):
