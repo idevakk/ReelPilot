@@ -217,6 +217,7 @@ def _make_one_video(
         out_dir.mkdir(parents=True, exist_ok=True)
         out_path = out_dir / f"{slug_name}.mp4"
 
+    console.print("[bold yellow]Stitching and rendering final video (this might take a few minutes)...[/bold yellow]")
     with console.status("[bold green]Assembling final MP4 (xfade + effects)..."):
         assembly.assemble(
             hook_path=hook_path,
