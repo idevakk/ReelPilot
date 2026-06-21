@@ -268,6 +268,11 @@
         </div>
 
         <div class="form-group">
+            <label for="duration">Target Duration (<span id="durLabel">30</span>s)</label>
+            <input type="range" id="duration" min="30" max="60" value="30" oninput="document.getElementById('durLabel').innerText = this.value">
+        </div>
+
+        <div class="form-group">
             <label for="voice">Voice</label>
             <select id="voice">
                 <option value="aura-2-luna-en">Aura Luna (Female)</option>
@@ -360,6 +365,7 @@
         const topic = document.getElementById('topic').value;
         const hook = document.getElementById('hook').value;
         const voice = document.getElementById('voice').value;
+        const duration = parseInt(document.getElementById('duration').value, 10);
 
         const btn = document.getElementById('generateBtn');
         const logs = document.getElementById('logs');
@@ -373,7 +379,7 @@
             const res = await fetch('/api/generate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ topic, hook, voice })
+                body: JSON.stringify({ topic, hook, voice, duration })
             });
             const data = await res.json();
             currentJobId = data.job_id;

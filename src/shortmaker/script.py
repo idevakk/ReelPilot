@@ -113,7 +113,7 @@ STORYTELLING RULES (follow ALL):
 4. B-ROLL KEYWORDS: This is critical! We download videos from Pexels using these keywords. Ensure at least one of the B-roll clips visually represents the core subject of the "{topic}". DO NOT USE abstract terms (like "mind_blown", "concept", "truth"). Use LITERAL, highly-searchable visual nouns and actions (e.g., "coffee cup", "people walking", "storm clouds", "scientist lab"). We prefer videos, so use highly visual terms.
 5. FLOW: Make the transitions between beats smooth and effortless. Don't sound rigid.
 6. energy: "high" for shocking/funny/exciting, "medium" for storytelling/reveals, "low" for emotional pauses.
-7. Total duration 40-60 seconds. Include enough body beats to fill this duration. Body beats should be 5-8s each, CTA 3-5s.
+7. Total duration {duration} seconds. Include enough body beats to fill this duration. Body beats should be 5-8s each, CTA 3-5s.
 8. broll_keywords: 2-3 specific LITERAL VISUAL terms for each beat. Make sure the keywords relate directly to the topic and the narration at that exact moment.
 """
 
@@ -153,6 +153,7 @@ def _call_llm(
     hook_name: str,
     hook_desc: str,
     settings: Settings,
+    duration: str = "30-40",
 ) -> tuple[str, int, int]:
     from openai import OpenAI
 
@@ -172,7 +173,7 @@ def _call_llm(
             {
                 "role": "user",
                 "content": USER_TEMPLATE.format(
-                    topic=topic, hook_name=hook_name, hook_desc=hook_desc,
+                    topic=topic, hook_name=hook_name, hook_desc=hook_desc, duration=duration,
                 ),
             },
         ],
@@ -353,17 +354,21 @@ def generate(
     hook_desc: str,
     settings: Settings,
     *,
+    duration: int = 30,
     retries: int = 2,
 ) -> Script:
     """Generate a Script.  Falls back to template if no API key or parse fails."""
     if not settings.openai_api_key:
         return _fallback_script(topic, hook_name)
 
+    # Convert the requested duration into a range for the prompt
+    dur_range = f"{duration}-{duration + 10}"
+
     last_err: Exception | None = None
     last_raw: str = ""
     for _ in range(retries + 1):
         try:
-            raw, p_tok, c_tok = _call_llm(topic, hook_name, hook_desc, settings)
+            raw, p_tok, c_tok = _call_llm(topic, hook_name, hook_desc, settings, duration=dur_range)
             data = _parse_payload(raw)
             beats = [Beat(**b) for b in data["beats"]]
             

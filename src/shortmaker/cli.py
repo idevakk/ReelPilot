@@ -145,6 +145,7 @@ def _make_one_video(
             hook_name=chosen_hook.name,
             hook_desc=hook_desc,
             settings=s,
+            duration=duration,
         )
     console.print(
         f"[cyan]Script:[/cyan] {len(script_obj.beats)} beats, "
@@ -278,6 +279,10 @@ def main(
     voice: str = typer.Option(
         tts.DEFAULT_VOICE, "--voice",
         help="Deepgram Aura voice id.",
+    ),
+    duration: int = typer.Option(
+        30, "--duration", "-d",
+        help="Target minimum duration in seconds (30 to 60).",
     ),
     out: Optional[Path] = typer.Option(
         None, "--out", "-o",
