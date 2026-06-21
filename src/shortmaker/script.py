@@ -152,7 +152,7 @@ def _call_llm(
             },
         ],
         response_format={"type": "json_object"},
-        max_tokens=1500,
+        max_tokens=8000,
         temperature=0.85,
     )
     return resp.choices[0].message.content or "{}"
@@ -235,6 +235,9 @@ def _parse_payload(payload: str) -> dict[str, Any]:
         if text.endswith("```"):
             text = text[:-3]
         text = text.strip()
+        
+    if not text.strip():
+        text = "{}"
 
     return json.loads(text)
 
