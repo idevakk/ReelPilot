@@ -38,6 +38,8 @@ class Settings:
     openai_model: str
     gemini_api_key: str | None
     use_gemini_script: bool
+    gemini_vision_model: str
+    gemini_script_model: str
 
     # ── v2 quality knobs ──
     video_quality: str       # "draft" (fast) | "final" (slow, max quality)
@@ -57,6 +59,8 @@ class Settings:
             openai_model=os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
             gemini_api_key=os.getenv("GEMINI_API_KEY") or None,
             use_gemini_script=os.getenv("USE_GEMINI_SCRIPT", "false").lower() in ("true", "1", "yes"),
+            gemini_vision_model=os.getenv("GEMINI_VISION_MODEL", "gemini-flash-latest"),
+            gemini_script_model=os.getenv("GEMINI_SCRIPT_MODEL", "gemini-2.5-flash"),
             video_quality=os.getenv("VIDEO_QUALITY", "final"),
             video_resolution=os.getenv("VIDEO_RESOLUTION", "4k").lower(),
             video_fps=int(os.getenv("VIDEO_FPS", "60")),

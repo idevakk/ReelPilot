@@ -143,7 +143,7 @@ def _call_llm(
     if settings.use_gemini_script and settings.gemini_api_key:
         api_key = settings.gemini_api_key
         base_url = "https://generativelanguage.googleapis.com/v1beta/openai/"
-        model = "gemini-2.5-flash"
+        model = settings.gemini_script_model
 
     client = OpenAI(api_key=api_key, base_url=base_url)
     resp = client.chat.completions.create(
@@ -174,7 +174,7 @@ def generate_topic(hook: Hook, settings: Settings) -> str:
     if settings.use_gemini_script and settings.gemini_api_key:
         api_key = settings.gemini_api_key
         base_url = "https://generativelanguage.googleapis.com/v1beta/openai/"
-        model = "gemini-2.5-flash"
+        model = settings.gemini_script_model
 
     if not api_key:
         # Offline fallback: pick from the hook's own seeds.
