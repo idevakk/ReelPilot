@@ -158,7 +158,8 @@ def _make_one_video(
         )
 
     # -- Work directory --
-    work_dir = OUTPUT_DIR / "_work" / f"{_slug(topic)}_{int(time.time())}"
+    slug_name = f"{_slug(topic)}_{int(time.time())}"
+    work_dir = OUTPUT_DIR / "_work" / slug_name
     work_dir.mkdir(parents=True, exist_ok=True)
     voice_wav = work_dir / "voice.wav"
     captions_json = work_dir / "captions.json"
@@ -208,8 +209,13 @@ def _make_one_video(
     console.print(f"[cyan]Music:[/cyan] {music_path.name}")
 
     # ── Assembly (xfade + effects + vignette) ──
-    out_path = out or (OUTPUT_DIR / f"{_slug(topic)}_{int(time.time())}.mp4")
-    out_path.parent.mkdir(parents=True, exist_ok=True)
+    if out:
+        out_path = out
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+    else:
+        out_dir = OUTPUT_DIR / slug_name
+        out_dir.mkdir(parents=True, exist_ok=True)
+        out_path = out_dir / f"{slug_name}.mp4"
 
     with console.status("[bold green]Assembling final MP4 (xfade + effects)..."):
         assembly.assemble(
