@@ -40,23 +40,14 @@ def extract_frames(video_path: Path, count: int = 3) -> list[str]:
                 
     return frames
 
+from openai import OpenAI
+
 def analyze_hook(video_path: Path, api_key: str, model_name: str = "gemini-flash-latest") -> str | None:
     """Uses Gemini to analyze the emotional vibe and action of the hook."""
     frame_count = 10
     frames_b64 = extract_frames(video_path, count=frame_count)
     if not frames_b64:
         return None
-        
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
-    
-    parts = []
-    for b64 in frames_b64:
-        parts.append({
-            "inline_data": {
-                "mime_type": "image/jpeg",
-                "data": b64
-            }
-        })
         
     prompt = (
         f"You are a master storyteller and video analyst. These {frame_count} frames are taken "
@@ -68,24 +59,27 @@ def analyze_hook(video_path: Path, api_key: str, model_name: str = "gemini-flash
         "so that a writer who cannot see the video can perfectly visualize it and write an engaging story around it.\n"
         "Provide ONLY the description with no intro, outro, or meta-commentary."
     )
-    parts.append({"text": prompt})
     
-    payload = {
-        "contents": [{
-            "parts": parts
-        }],
-        "generationConfig": {
-            "temperature": 0.6,
-            "maxOutputTokens": 400
-        }
-    }
+    content_parts = [{"type": "text", "text": prompt}]
+    for b64 in frames_b64:
+        content_parts.append({
+            "type": "image_url",
+            "image_url": {"url": f"data:image/jpeg;base64,{b64}"}
+        })
+        
+    client = OpenAI(
+        api_key=api_key,
+        base_url="https://generativelanguage.googleapis.com/v1beta/openai/"
+    )
     
     try:
-        r = requests.post(url, json=payload, timeout=30)
-        r.raise_for_status()
-        data = r.json()
-        if "candidates" in data and len(data["candidates"]) > 0:
-            return data["candidates"][0]["content"]["parts"][0]["text"].strip()
+        resp = client.chat.completions.create(
+            model=model_name,
+            messages=[{"role": "user", "content": content_parts}],
+            temperature=0.6,
+            max_tokens=400
+        )
+        return resp.choices[0].message.content.strip()
     except Exception as e:
         print(f"WARN: Gemini Vision analysis failed: {e}")
         
