@@ -139,6 +139,19 @@ def by_name(name: str) -> Hook:
     for h in CATALOG:
         if h.name.lower() == key:
             return h
+            
+    # Check if we have it locally downloaded
+    from .config import HOOKS_DIR
+    for p in HOOKS_DIR.glob("*.mp4"):
+        if p.stem.lower().replace("_", "-") == key:
+            return Hook(
+                name=p.stem,
+                url=f"local://{p.name}",
+                description=p.stem.replace("-", " "),
+                tags=[w.lower() for w in p.stem.replace("-", " ").split()],
+                topic_seeds=[],
+            )
+            
     raise KeyError(f"Unknown hook: {name}. Known: {[h.name for h in CATALOG]}")
 
 
