@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -44,14 +45,17 @@
             width: 8px;
             height: 8px;
         }
+
         ::-webkit-scrollbar-track {
             background: rgba(0, 0, 0, 0.2);
             border-radius: 4px;
         }
+
         ::-webkit-scrollbar-thumb {
             background: rgba(255, 255, 255, 0.15);
             border-radius: 4px;
         }
+
         ::-webkit-scrollbar-thumb:hover {
             background: rgba(255, 255, 255, 0.25);
         }
@@ -59,7 +63,7 @@
         header {
             padding: 1.5rem 2rem;
             background: var(--surface);
-            border-bottom: 1px solid rgba(255,255,255,0.05);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
             flex-shrink: 0;
             display: flex;
             justify-content: space-between;
@@ -85,8 +89,8 @@
         .header-controls select {
             width: auto;
             padding: 0.5rem 1rem;
-            background: rgba(0,0,0,0.3);
-            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 6px;
             color: white;
             font-size: 0.9rem;
@@ -109,8 +113,8 @@
             background: var(--surface);
             border-radius: var(--radius);
             padding: 1.5rem;
-            border: 1px solid rgba(255,255,255,0.05);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             overflow-y: auto;
         }
 
@@ -132,11 +136,14 @@
             font-weight: 600;
         }
 
-        input[type="text"], input[type="number"], input[type="password"], select {
+        input[type="text"],
+        input[type="number"],
+        input[type="password"],
+        select {
             width: 100%;
             padding: 0.75rem 1rem;
-            background: rgba(0,0,0,0.2);
-            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 8px;
             color: white;
             font-size: 1rem;
@@ -144,7 +151,10 @@
             box-sizing: border-box;
         }
 
-        input[type="text"]:focus, input[type="number"]:focus, input[type="password"]:focus, select:focus {
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        input[type="password"]:focus,
+        select:focus {
             outline: none;
             border-color: var(--primary);
             box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
@@ -155,6 +165,7 @@
             grid-template-columns: 1fr 1fr;
             gap: 1rem;
         }
+
         .settings-grid-3 {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
@@ -176,7 +187,7 @@
             width: 100%;
             height: 6px;
             cursor: pointer;
-            background: rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.1);
             border-radius: 4px;
         }
 
@@ -195,7 +206,7 @@
             width: 100%;
             height: 6px;
             cursor: pointer;
-            background: rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.1);
             border-radius: 4px;
         }
 
@@ -255,10 +266,10 @@
         }
 
         .video-card {
-            background: rgba(0,0,0,0.2);
+            background: rgba(0, 0, 0, 0.2);
             border-radius: var(--radius);
             overflow: hidden;
-            border: 1px solid rgba(255,255,255,0.05);
+            border: 1px solid rgba(255, 255, 255, 0.05);
             transition: transform 0.2s;
             display: flex;
             height: 220px;
@@ -266,7 +277,7 @@
 
         .video-card:hover {
             transform: translateY(-3px);
-            border-color: rgba(255,255,255,0.1);
+            border-color: rgba(255, 255, 255, 0.1);
         }
 
         video {
@@ -302,7 +313,7 @@
         }
 
         .video-stats {
-            background: rgba(0,0,0,0.3);
+            background: rgba(0, 0, 0, 0.3);
             border-radius: 6px;
             padding: 0.75rem;
             margin-bottom: 1rem;
@@ -354,6 +365,7 @@
                 overflow: auto;
                 display: block;
             }
+
             main {
                 grid-template-columns: 1fr;
                 padding: 1rem;
@@ -361,161 +373,181 @@
                 display: flex;
                 flex-direction: column;
             }
+
             header {
                 flex-direction: column;
                 gap: 1rem;
                 align-items: stretch;
                 padding: 1rem;
             }
+
             .header-controls {
                 width: 100%;
+                justify-content: stretch;
             }
+
             .header-controls select {
-                width: 100%;
+                flex: 1;
+                width: auto;
             }
+
             .panel {
                 overflow-y: visible;
                 padding: 1rem;
             }
+
             .gallery {
                 grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
                 gap: 1rem;
             }
-            .settings-grid, .settings-grid-3 {
+
+            .settings-grid,
+            .settings-grid-3 {
                 grid-template-columns: 1fr;
             }
+
+            .settings-btn .btn-text {
+                display: none;
+            }
+            .settings-btn {
+                padding: 0.5rem !important;
+            }
             #settingsModal .panel {
-                width: 90% !important;
+                width: 95% !important;
                 max-height: 85vh !important;
                 padding: 1rem !important;
+                margin: 1rem !important;
             }
         }
     </style>
 </head>
+
 <body>
 
-<header>
-    <h1>ShortMaker Studio</h1>
-    <div class="header-controls">
-        <select id="engine">
-            <option value="intel">Intel QuickSync (QSV)</option>
-            <option value="nvidia">NVIDIA NVENC (GPU)</option>
-            <option value="cpu">Software (CPU - libx264)</option>
-        </select>
-        <button onclick="openSettings()" class="settings-btn" style="width: auto; padding: 0.5rem 1rem; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); font-size: 0.9rem;">⚙️ Settings</button>
-    </div>
-</header>
-
-<main>
-    <div class="panel">
-        <h2>Create New Video</h2>
-        
-        <div class="form-group">
-            <label for="topic">Topic (Optional)</label>
-            <input type="text" id="topic" placeholder="e.g. AI is taking over coding (Leave empty for Auto Mode)">
-        </div>
-        
-        <div class="form-group">
-            <label for="hook">Hook Style</label>
-            <select id="hook">
-                <option value="auto">Auto (Let AI decide)</option>
-                <!-- Hooks injected here via JS -->
+    <header>
+        <h1>ShortMaker Studio</h1>
+        <div class="header-controls">
+            <select id="engine">
+                <option value="intel">Intel QuickSync (QSV)</option>
+                <option value="nvidia">NVIDIA NVENC (GPU)</option>
+                <option value="cpu">Software (CPU - libx264)</option>
             </select>
+            <button onclick="openSettings()" class="settings-btn"
+                style="width: auto; padding: 0.5rem 1rem; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); font-size: 0.9rem;">⚙️<span class="btn-text"> Settings</span></button>
+        </div>
+    </header>
+
+    <main>
+        <div class="panel">
+            <h2>Create New Video</h2>
+
+            <div class="form-group">
+                <label for="topic">Topic (Optional)</label>
+                <input type="text" id="topic" placeholder="e.g. AI is taking over coding (Leave empty for Auto Mode)">
+            </div>
+
+            <div class="form-group">
+                <label for="hook">Hook Style</label>
+                <select id="hook">
+                    <option value="auto">Auto (Let AI decide)</option>
+                    <!-- Hooks injected here via JS -->
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="duration">Target Duration (<span id="durLabel">30</span>s)</label>
+                <input type="range" id="duration" min="30" max="60" value="30"
+                    oninput="document.getElementById('durLabel').innerText = this.value">
+            </div>
+
+            <div class="form-group">
+                <label for="voice">Voice</label>
+                <select id="voice">
+                    <option value="aura-2-luna-en">Aura Luna (Female)</option>
+                    <option value="aura-2-orion-en">Aura Orion (Male)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="bgm">Background Music</label>
+                <select id="bgm">
+                    <option value="auto">Auto (Pixabay / Random)</option>
+                    <!-- Music injected here via JS -->
+                </select>
+            </div>
+
+            <button id="generateBtn" onclick="generateVideo()">Generate Masterpiece</button>
+
+            <div class="logs-container" id="logs">Waiting to start...</div>
+
+            <hr style="border-color: rgba(255,255,255,0.05); margin: 2rem 0;">
+
+            <h2>Music Library</h2>
+            <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap;">
+                <input type="file" id="musicFile" accept="audio/*" style="flex: 1; min-width: 150px; padding: 0.5rem; font-size: 0.8rem; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: white;">
+                <button onclick="uploadMusic()" style="padding: 0.5rem 1rem; width: auto; font-size: 0.9rem; white-space: nowrap;">Upload</button>
+            </div>
+            <div id="musicList" style="display: flex; flex-direction: column; gap: 0.5rem;">
+                <!-- Music items injected here -->
+            </div>
+
         </div>
 
-        <div class="form-group">
-            <label for="duration">Target Duration (<span id="durLabel">30</span>s)</label>
-            <input type="range" id="duration" min="30" max="60" value="30" oninput="document.getElementById('durLabel').innerText = this.value">
+        <div class="panel">
+            <h2>Your Creations</h2>
+            <div class="gallery" id="gallery">
+                <!-- Videos injected here -->
+            </div>
         </div>
+    </main>
 
-        <div class="form-group">
-            <label for="voice">Voice</label>
-            <select id="voice">
-                <option value="aura-2-luna-en">Aura Luna (Female)</option>
-                <option value="aura-2-orion-en">Aura Orion (Male)</option>
-            </select>
-        </div>
+    <script>
+        let currentJobId = null;
+        let pollInterval = null;
 
-        <div class="form-group">
-            <label for="bgm">Background Music</label>
-            <select id="bgm">
-                <option value="auto">Auto (Pixabay / Random)</option>
-                <!-- Music injected here via JS -->
-            </select>
-        </div>
-
-        <button id="generateBtn" onclick="generateVideo()">Generate Masterpiece</button>
-
-        <div class="logs-container" id="logs">Waiting to start...</div>
-
-        <hr style="border-color: rgba(255,255,255,0.05); margin: 2rem 0;">
-
-        <h2>Music Library</h2>
-        <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
-            <input type="file" id="musicFile" accept="audio/*" style="padding: 0.5rem; font-size: 0.8rem;">
-            <button onclick="uploadMusic()" style="padding: 0.5rem; width: auto; font-size: 0.9rem;">Upload</button>
-        </div>
-        <div id="musicList" style="display: flex; flex-direction: column; gap: 0.5rem;">
-            <!-- Music items injected here -->
-        </div>
-
-    </div>
-
-    <div class="panel">
-        <h2>Your Creations</h2>
-        <div class="gallery" id="gallery">
-            <!-- Videos injected here -->
-        </div>
-    </div>
-</main>
-
-<script>
-    let currentJobId = null;
-    let pollInterval = null;
-
-    async function fetchHooks() {
-        try {
-            const res = await fetch('/api/hooks');
-            const data = await res.json();
-            const hookSelect = document.getElementById('hook');
-            hookSelect.innerHTML = '';
-            data.hooks.forEach(hook => {
-                const opt = document.createElement('option');
-                opt.value = hook;
-                opt.innerText = hook.charAt(0).toUpperCase() + hook.slice(1).replace(/-/g, ' ');
-                hookSelect.appendChild(opt);
-            });
-        } catch (e) {
-            console.error("Failed to load hooks");
+        async function fetchHooks() {
+            try {
+                const res = await fetch('/api/hooks');
+                const data = await res.json();
+                const hookSelect = document.getElementById('hook');
+                hookSelect.innerHTML = '';
+                data.hooks.forEach(hook => {
+                    const opt = document.createElement('option');
+                    opt.value = hook;
+                    opt.innerText = hook.charAt(0).toUpperCase() + hook.slice(1).replace(/-/g, ' ');
+                    hookSelect.appendChild(opt);
+                });
+            } catch (e) {
+                console.error("Failed to load hooks");
+            }
         }
-    }
 
-    async function fetchVideos() {
-        try {
-            const res = await fetch('/api/videos');
-            const data = await res.json();
-            const gallery = document.getElementById('gallery');
-            gallery.innerHTML = '';
-            
-            data.videos.forEach(v => {
-                const date = new Date(v.created_at * 1000).toLocaleString();
-                
-                // Parse stats from sidecar
-                let timeTaken = '-', totalCost = '-', llmCost = '-', deepgramCost = '-';
-                if (v.sidecar) {
-                    const matchTime = v.sidecar.match(/- Total Time Taken:\s*(.+)/);
-                    if (matchTime) timeTaken = matchTime[1];
-                    const matchTotal = v.sidecar.match(/- Total Pipeline Cost:\s*(.+)/);
-                    if (matchTotal) totalCost = matchTotal[1];
-                    const matchLlm = v.sidecar.match(/- LLM Estimated Cost:\s*(.+)/);
-                    if (matchLlm) llmCost = matchLlm[1];
-                    const matchVoice = v.sidecar.match(/- Deepgram Voice Cost:\s*(.+)/);
-                    if (matchVoice) deepgramCost = matchVoice[1];
-                }
+        async function fetchVideos() {
+            try {
+                const res = await fetch('/api/videos');
+                const data = await res.json();
+                const gallery = document.getElementById('gallery');
+                gallery.innerHTML = '';
 
-                const card = document.createElement('div');
-                card.className = 'video-card';
-                card.innerHTML = `
+                data.videos.forEach(v => {
+                    const date = new Date(v.created_at * 1000).toLocaleString();
+
+                    // Parse stats from sidecar
+                    let timeTaken = '-', totalCost = '-', llmCost = '-', deepgramCost = '-';
+                    if (v.sidecar) {
+                        const matchTime = v.sidecar.match(/- Total Time Taken:\s*(.+)/);
+                        if (matchTime) timeTaken = matchTime[1];
+                        const matchTotal = v.sidecar.match(/- Total Pipeline Cost:\s*(.+)/);
+                        if (matchTotal) totalCost = matchTotal[1];
+                        const matchLlm = v.sidecar.match(/- LLM Estimated Cost:\s*(.+)/);
+                        if (matchLlm) llmCost = matchLlm[1];
+                        const matchVoice = v.sidecar.match(/- Deepgram Voice Cost:\s*(.+)/);
+                        if (matchVoice) deepgramCost = matchVoice[1];
+                    }
+
+                    const card = document.createElement('div');
+                    card.className = 'video-card';
+                    card.innerHTML = `
                     <video data-src="${v.url}" controls preload="none"></video>
                     <div class="video-info">
                         <div class="video-title" title="${v.id}">${v.id.replace(/_\d+$/, '')}</div>
@@ -529,392 +561,396 @@
                         <a href="${v.url}" download class="download-btn">Download MP4</a>
                     </div>
                 `;
-                gallery.appendChild(card);
-            });
-
-            // Lazy load video metadata to prevent network connection exhaustion
-            const videoObserver = new IntersectionObserver((entries, observer) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        const video = entry.target;
-                        video.src = video.dataset.src;
-                        video.preload = "metadata";
-                        observer.unobserve(video);
-                    }
+                    gallery.appendChild(card);
                 });
-            }, { rootMargin: '100px' });
 
-            document.querySelectorAll('video[data-src]').forEach(video => {
-                videoObserver.observe(video);
-            });
+                // Lazy load video metadata to prevent network connection exhaustion
+                const videoObserver = new IntersectionObserver((entries, observer) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            const video = entry.target;
+                            video.src = video.dataset.src;
+                            video.preload = "metadata";
+                            observer.unobserve(video);
+                        }
+                    });
+                }, { rootMargin: '100px' });
 
-        } catch (e) {
-            console.error("Failed to load videos", e);
+                document.querySelectorAll('video[data-src]').forEach(video => {
+                    videoObserver.observe(video);
+                });
+
+            } catch (e) {
+                console.error("Failed to load videos", e);
+            }
         }
-    }
 
-    async function generateVideo() {
-        const topic = document.getElementById('topic').value;
-        const hook = document.getElementById('hook').value;
-        const voice = document.getElementById('voice').value;
-        const duration = parseInt(document.getElementById('duration').value, 10);
-        const engine = document.getElementById('engine').value;
-        const bgm = document.getElementById('bgm').value;
+        async function generateVideo() {
+            const topic = document.getElementById('topic').value;
+            const hook = document.getElementById('hook').value;
+            const voice = document.getElementById('voice').value;
+            const duration = parseInt(document.getElementById('duration').value, 10);
+            const engine = document.getElementById('engine').value;
+            const bgm = document.getElementById('bgm').value;
 
-        const btn = document.getElementById('generateBtn');
-        const logs = document.getElementById('logs');
-        
-        btn.disabled = true;
-        btn.innerText = 'Initializing...';
-        logs.style.display = 'block';
-        logs.innerText = 'Connecting to generation engine...';
+            const btn = document.getElementById('generateBtn');
+            const logs = document.getElementById('logs');
 
-        try {
-            const res = await fetch('/api/generate', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ topic, hook, voice, duration, engine, bgm })
-            });
-            const data = await res.json();
-            currentJobId = data.job_id;
-            
-            btn.innerText = 'Generating... (Takes ~1-2 mins)';
-            pollInterval = setInterval(pollStatus, 2000);
-            
-        } catch (e) {
-            btn.disabled = false;
-            btn.innerText = 'Generate Masterpiece';
-            logs.innerText = 'Failed to start generation.';
-        }
-    }
+            btn.disabled = true;
+            btn.innerText = 'Initializing...';
+            logs.style.display = 'block';
+            logs.innerText = 'Connecting to generation engine...';
 
-    async function pollStatus() {
-        if (!currentJobId) return;
+            try {
+                const res = await fetch('/api/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ topic, hook, voice, duration, engine, bgm })
+                });
+                const data = await res.json();
+                currentJobId = data.job_id;
 
-        try {
-            const res = await fetch(`/api/jobs/${currentJobId}`);
-            const data = await res.json();
-            
-            const logsEl = document.getElementById('logs');
-            logsEl.innerText = data.logs || 'Waiting for logs...';
-            logsEl.scrollTop = logsEl.scrollHeight;
+                btn.innerText = 'Generating... (Takes ~1-2 mins)';
+                pollInterval = setInterval(pollStatus, 2000);
 
-            if (data.status === 'completed' || data.status === 'failed') {
-                clearInterval(pollInterval);
-                currentJobId = null;
-                
-                const btn = document.getElementById('generateBtn');
+            } catch (e) {
                 btn.disabled = false;
                 btn.innerText = 'Generate Masterpiece';
-                
-                if (data.status === 'completed') {
-                    logsEl.innerText += '\n\nDone! Successfully saved video.';
-                    fetchVideos(); // Refresh gallery
-                } else {
-                    logsEl.innerText += '\n\nGeneration failed. Check the logs.';
-                }
+                logs.innerText = 'Failed to start generation.';
             }
-        } catch (e) {
-            console.error("Poll failed");
         }
-    }
 
-    async function fetchMusic() {
-        try {
-            const res = await fetch('/api/music');
-            const data = await res.json();
-            const list = document.getElementById('musicList');
-            list.innerHTML = '';
-            const bgmSelect = document.getElementById('bgm');
-            // Keep the selected value if possible
-            const currentBgm = bgmSelect.value;
-            bgmSelect.innerHTML = '<option value="auto">Auto (Pixabay / Random)</option>';
-            
-            if (data.music.length === 0) {
-                list.innerHTML = '<div style="color: #666; font-size: 0.9rem;">No music found. Upload some!</div>';
-                return;
+        async function pollStatus() {
+            if (!currentJobId) return;
+
+            try {
+                const res = await fetch(`/api/jobs/${currentJobId}`);
+                const data = await res.json();
+
+                const logsEl = document.getElementById('logs');
+                logsEl.innerText = data.logs || 'Waiting for logs...';
+                logsEl.scrollTop = logsEl.scrollHeight;
+
+                if (data.status === 'completed' || data.status === 'failed') {
+                    clearInterval(pollInterval);
+                    currentJobId = null;
+
+                    const btn = document.getElementById('generateBtn');
+                    btn.disabled = false;
+                    btn.innerText = 'Generate Masterpiece';
+
+                    if (data.status === 'completed') {
+                        logsEl.innerText += '\n\nDone! Successfully saved video.';
+                        fetchVideos(); // Refresh gallery
+                    } else {
+                        logsEl.innerText += '\n\nGeneration failed. Check the logs.';
+                    }
+                }
+            } catch (e) {
+                console.error("Poll failed");
             }
+        }
 
-            data.music.forEach(m => {
-                const div = document.createElement('div');
-                div.style.display = 'flex';
-                div.style.flexDirection = 'column';
-                div.style.gap = '0.5rem';
-                div.style.background = 'rgba(0,0,0,0.2)';
-                div.style.padding = '0.75rem';
-                div.style.borderRadius = '6px';
-                
-                div.innerHTML = `
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <div style="font-size: 0.85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${m.name}">${m.name}</div>
-                        <button onclick="deleteMusic('${m.name}')" style="background: transparent; color: #ef4444; width: auto; padding: 0.25rem 0.5rem; font-size: 0.8rem;">Delete</button>
+        async function fetchMusic() {
+            try {
+                const res = await fetch('/api/music');
+                const data = await res.json();
+                const list = document.getElementById('musicList');
+                list.innerHTML = '';
+                const bgmSelect = document.getElementById('bgm');
+                // Keep the selected value if possible
+                const currentBgm = bgmSelect.value;
+                bgmSelect.innerHTML = '<option value="auto">Auto (Pixabay / Random)</option>';
+
+                if (data.music.length === 0) {
+                    list.innerHTML = '<div style="color: #666; font-size: 0.9rem;">No music found. Upload some!</div>';
+                    return;
+                }
+
+                data.music.forEach(m => {
+                    const div = document.createElement('div');
+                    div.style.display = 'flex';
+                    div.style.flexDirection = 'column';
+                    div.style.gap = '0.5rem';
+                    div.style.background = 'rgba(0,0,0,0.2)';
+                    div.style.padding = '0.75rem';
+                    div.style.borderRadius = '6px';
+
+                    div.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.5rem;">
+                        <div style="font-size: 0.85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1;" title="${m.name}">${m.name}</div>
+                        <button onclick="deleteMusic('${m.name}')" style="background: transparent; color: #ef4444; width: auto; padding: 0.25rem 0.5rem; font-size: 0.8rem; flex-shrink: 0;">Delete</button>
                     </div>
                     <audio controls preload="none" src="/music/${m.name}" style="width: 100%; height: 30px; border-radius: 4px;"></audio>
                 `;
-                list.appendChild(div);
-                
-                const opt = document.createElement('option');
-                opt.value = m.name;
-                opt.innerText = m.name;
-                if (m.name === currentBgm) opt.selected = true;
-                bgmSelect.appendChild(opt);
-            });
-        } catch(e) {
-            console.error("Failed to fetch music", e);
-        }
-    }
+                    list.appendChild(div);
 
-    async function uploadMusic() {
-        const fileInput = document.getElementById('musicFile');
-        if (!fileInput.files || fileInput.files.length === 0) {
-            alert('Please select a file first.');
-            return;
-        }
-
-        const formData = new FormData();
-        formData.append('file', fileInput.files[0]);
-
-        try {
-            const res = await fetch('/api/music', {
-                method: 'POST',
-                body: formData
-            });
-            if (res.ok) {
-                fileInput.value = '';
-                fetchMusic();
-            } else {
-                alert('Upload failed.');
+                    const opt = document.createElement('option');
+                    opt.value = m.name;
+                    opt.innerText = m.name;
+                    if (m.name === currentBgm) opt.selected = true;
+                    bgmSelect.appendChild(opt);
+                });
+            } catch (e) {
+                console.error("Failed to fetch music", e);
             }
-        } catch(e) {
-            console.error("Failed to upload music", e);
         }
-    }
 
-    async function deleteMusic(filename) {
-        if (!confirm(`Are you sure you want to delete ${filename}?`)) return;
-        try {
-            const res = await fetch(`/api/music/${filename}`, {
-                method: 'DELETE'
-            });
-            if (res.ok) {
-                fetchMusic();
-            } else {
-                alert('Delete failed.');
+        async function uploadMusic() {
+            const fileInput = document.getElementById('musicFile');
+            if (!fileInput.files || fileInput.files.length === 0) {
+                alert('Please select a file first.');
+                return;
             }
-        } catch(e) {
-            console.error("Failed to delete music", e);
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            try {
+                const res = await fetch('/api/music', {
+                    method: 'POST',
+                    body: formData
+                });
+                if (res.ok) {
+                    fileInput.value = '';
+                    fetchMusic();
+                } else {
+                    alert('Upload failed.');
+                }
+            } catch (e) {
+                console.error("Failed to upload music", e);
+            }
         }
-    }
 
-    // Initialize
-    document.getElementById('durLabel').innerText = document.getElementById('duration').value;
-    fetchHooks();
-    fetchVideos();
-    fetchMusic();
-</script>
+        async function deleteMusic(filename) {
+            if (!confirm(`Are you sure you want to delete ${filename}?`)) return;
+            try {
+                const res = await fetch(`/api/music/${filename}`, {
+                    method: 'DELETE'
+                });
+                if (res.ok) {
+                    fetchMusic();
+                } else {
+                    alert('Delete failed.');
+                }
+            } catch (e) {
+                console.error("Failed to delete music", e);
+            }
+        }
 
-<!-- Settings Modal -->
-<div id="settingsModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center;">
-    <div class="panel" style="width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; position: relative;">
-        <button onclick="closeSettings()" style="position: absolute; top: 1rem; right: 1rem; width: auto; padding: 0.5rem; background: transparent; color: white;">✖</button>
-        <h2 style="margin-top: 0;">Settings / Config</h2>
-        <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">
-            Keys and configuration are saved locally to your .env file.
-        </div>
-        
-        <h3 style="margin-bottom: 0.5rem; font-size: 1rem;">OpenAI API (Script & Rerank)</h3>
-        <div class="form-group">
-            <label>API Key</label>
-            <input type="password" id="set_openai_api_key">
-        </div>
-        <div class="settings-grid">
-            <div class="form-group">
-                <label>Base URL</label>
-                <input type="text" id="set_openai_base_url">
-            </div>
-            <div class="form-group">
-                <label>Model</label>
-                <input type="text" id="set_openai_model">
-            </div>
-        </div>
-        <div class="form-group">
-            <label>Reasoning Effort (low, medium, high)</label>
-            <input type="text" id="set_openai_reasoning_effort">
-        </div>
+        // Initialize
+        document.getElementById('durLabel').innerText = document.getElementById('duration').value;
+        fetchHooks();
+        fetchVideos();
+        fetchMusic();
+    </script>
 
-        <h3 style="margin-bottom: 0.5rem; font-size: 1rem;">Gemini API (Alternative Script & Vision)</h3>
-        <div class="form-group">
-            <label>API Key</label>
-            <input type="password" id="set_gemini_api_key">
-        </div>
-        <div class="settings-grid">
-            <div class="form-group">
-                <label>Base URL</label>
-                <input type="text" id="set_gemini_base_url">
+    <!-- Settings Modal -->
+    <div id="settingsModal"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center;">
+        <div class="panel"
+            style="width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; position: relative;">
+            <button onclick="closeSettings()"
+                style="position: absolute; top: 1rem; right: 1rem; width: auto; padding: 0.5rem; background: transparent; color: white;">✖</button>
+            <h2 style="margin-top: 0;">Settings / Config</h2>
+            <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">
+                Keys and configuration are saved locally to your .env file.
             </div>
-            <div class="form-group">
-                <label>Use Gemini for Script?</label>
-                <select id="set_use_gemini_script">
-                    <option value="true">True</option>
-                    <option value="false">False</option>
-                </select>
-            </div>
-        </div>
-        <div class="settings-grid">
-            <div class="form-group">
-                <label>Vision Model</label>
-                <input type="text" id="set_gemini_vision_model">
-            </div>
-            <div class="form-group">
-                <label>Script Model</label>
-                <input type="text" id="set_gemini_script_model">
-            </div>
-        </div>
 
-        <h3 style="margin-bottom: 0.5rem; font-size: 1rem;">Provider Keys</h3>
-        <div class="form-group">
-            <label>Deepgram API Key (Voiceover)</label>
-            <input type="password" id="set_deepgram_api_key">
-        </div>
-        <div class="form-group">
-            <label>Pexels API Key (B-roll)</label>
-            <input type="password" id="set_pexels_api_key">
-        </div>
-        <div class="form-group">
-            <label>Pixabay API Key (Music)</label>
-            <input type="password" id="set_pixabay_api_key">
-        </div>
+            <h3 style="margin-bottom: 0.5rem; font-size: 1rem;">OpenAI API (Script & Rerank)</h3>
+            <div class="form-group">
+                <label>API Key</label>
+                <input type="password" id="set_openai_api_key">
+            </div>
+            <div class="settings-grid">
+                <div class="form-group">
+                    <label>Base URL</label>
+                    <input type="text" id="set_openai_base_url">
+                </div>
+                <div class="form-group">
+                    <label>Model</label>
+                    <input type="text" id="set_openai_model">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Reasoning Effort (low, medium, high)</label>
+                <input type="text" id="set_openai_reasoning_effort">
+            </div>
 
-        <h3 style="margin-bottom: 0.5rem; font-size: 1rem;">Video Quality & Style</h3>
-        <div class="form-group">
-            <label>Output Directory</label>
-            <input type="text" id="set_output_dir">
+            <h3 style="margin-bottom: 0.5rem; font-size: 1rem;">Gemini API (Alternative Script & Vision)</h3>
+            <div class="form-group">
+                <label>API Key</label>
+                <input type="password" id="set_gemini_api_key">
+            </div>
+            <div class="settings-grid">
+                <div class="form-group">
+                    <label>Base URL</label>
+                    <input type="text" id="set_gemini_base_url">
+                </div>
+                <div class="form-group">
+                    <label>Use Gemini for Script?</label>
+                    <select id="set_use_gemini_script">
+                        <option value="true">True</option>
+                        <option value="false">False</option>
+                    </select>
+                </div>
+            </div>
+            <div class="settings-grid">
+                <div class="form-group">
+                    <label>Vision Model</label>
+                    <input type="text" id="set_gemini_vision_model">
+                </div>
+                <div class="form-group">
+                    <label>Script Model</label>
+                    <input type="text" id="set_gemini_script_model">
+                </div>
+            </div>
+
+            <h3 style="margin-bottom: 0.5rem; font-size: 1rem;">Provider Keys</h3>
+            <div class="form-group">
+                <label>Deepgram API Key (Voiceover)</label>
+                <input type="password" id="set_deepgram_api_key">
+            </div>
+            <div class="form-group">
+                <label>Pexels API Key (B-roll)</label>
+                <input type="password" id="set_pexels_api_key">
+            </div>
+            <div class="form-group">
+                <label>Pixabay API Key (Music)</label>
+                <input type="password" id="set_pixabay_api_key">
+            </div>
+
+            <h3 style="margin-bottom: 0.5rem; font-size: 1rem;">Video Quality & Style</h3>
+            <div class="form-group">
+                <label>Output Directory</label>
+                <input type="text" id="set_output_dir">
+            </div>
+            <div class="settings-grid">
+                <div class="form-group">
+                    <label>Resolution</label>
+                    <select id="set_video_resolution">
+                        <option value="1080p">1080p</option>
+                        <option value="4k">4K</option>
+                        <option value="8k">8K</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>FPS</label>
+                    <select id="set_video_fps">
+                        <option value="30">30 FPS</option>
+                        <option value="60">60 FPS</option>
+                    </select>
+                </div>
+            </div>
+            <div class="settings-grid-3">
+                <div class="form-group">
+                    <label>Quality</label>
+                    <select id="set_video_quality">
+                        <option value="draft">Draft (Fast)</option>
+                        <option value="final">Final (Slow)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Transition</label>
+                    <select id="set_transition_style">
+                        <option value="aggressive">Aggressive</option>
+                        <option value="smooth">Smooth</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Captions</label>
+                    <select id="set_caption_style">
+                        <option value="minimal">Minimal</option>
+                        <option value="bold">Bold</option>
+                        <option value="animated">Animated</option>
+                    </select>
+                </div>
+            </div>
+
+            <button onclick="saveSettings()" style="margin-top: 1rem;">Save Settings</button>
         </div>
-        <div class="settings-grid">
-            <div class="form-group">
-                <label>Resolution</label>
-                <select id="set_video_resolution">
-                    <option value="1080p">1080p</option>
-                    <option value="4k">4K</option>
-                    <option value="8k">8K</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>FPS</label>
-                <select id="set_video_fps">
-                    <option value="30">30 FPS</option>
-                    <option value="60">60 FPS</option>
-                </select>
-            </div>
-        </div>
-        <div class="settings-grid-3">
-            <div class="form-group">
-                <label>Quality</label>
-                <select id="set_video_quality">
-                    <option value="draft">Draft (Fast)</option>
-                    <option value="final">Final (Slow)</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Transition</label>
-                <select id="set_transition_style">
-                    <option value="aggressive">Aggressive</option>
-                    <option value="smooth">Smooth</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Captions</label>
-                <select id="set_caption_style">
-                    <option value="minimal">Minimal</option>
-                    <option value="bold">Bold</option>
-                    <option value="animated">Animated</option>
-                </select>
-            </div>
-        </div>
-        
-        <button onclick="saveSettings()" style="margin-top: 1rem;">Save Settings</button>
     </div>
-</div>
 
-<script>
-    async function openSettings() {
-        try {
-            const res = await fetch('/api/settings');
-            const data = await res.json();
-            
-            document.getElementById('set_openai_api_key').value = data.openai_api_key || "";
-            document.getElementById('set_openai_base_url').value = data.openai_base_url || "";
-            document.getElementById('set_openai_model').value = data.openai_model || "";
-            document.getElementById('set_openai_reasoning_effort').value = data.openai_reasoning_effort || "";
-            
-            document.getElementById('set_gemini_api_key').value = data.gemini_api_key || "";
-            document.getElementById('set_gemini_base_url').value = data.gemini_base_url || "";
-            document.getElementById('set_use_gemini_script').value = (data.use_gemini_script || "true").toLowerCase();
-            document.getElementById('set_gemini_vision_model').value = data.gemini_vision_model || "";
-            document.getElementById('set_gemini_script_model').value = data.gemini_script_model || "";
-            
-            document.getElementById('set_deepgram_api_key').value = data.deepgram_api_key || "";
-            document.getElementById('set_pexels_api_key').value = data.pexels_api_key || "";
-            document.getElementById('set_pixabay_api_key').value = data.pixabay_api_key || "";
-            
-            document.getElementById('set_output_dir').value = data.output_dir || "out";
-            document.getElementById('set_video_resolution').value = (data.video_resolution || "4k").toLowerCase();
-            document.getElementById('set_video_fps').value = data.video_fps || "60";
-            document.getElementById('set_video_quality').value = (data.video_quality || "final").toLowerCase();
-            document.getElementById('set_transition_style').value = (data.transition_style || "aggressive").toLowerCase();
-            document.getElementById('set_caption_style').value = (data.caption_style || "bold").toLowerCase();
-            
-            document.getElementById('settingsModal').style.display = 'flex';
-        } catch(e) {
-            console.error("Failed to load settings", e);
-        }
-    }
-    
-    function closeSettings() {
-        document.getElementById('settingsModal').style.display = 'none';
-    }
-    
-    async function saveSettings() {
-        const payload = {
-            openai_api_key: document.getElementById('set_openai_api_key').value,
-            openai_base_url: document.getElementById('set_openai_base_url').value,
-            openai_model: document.getElementById('set_openai_model').value,
-            openai_reasoning_effort: document.getElementById('set_openai_reasoning_effort').value,
-            
-            gemini_api_key: document.getElementById('set_gemini_api_key').value,
-            gemini_base_url: document.getElementById('set_gemini_base_url').value,
-            use_gemini_script: document.getElementById('set_use_gemini_script').value,
-            gemini_vision_model: document.getElementById('set_gemini_vision_model').value,
-            gemini_script_model: document.getElementById('set_gemini_script_model').value,
-            
-            deepgram_api_key: document.getElementById('set_deepgram_api_key').value,
-            pexels_api_key: document.getElementById('set_pexels_api_key').value,
-            pixabay_api_key: document.getElementById('set_pixabay_api_key').value,
-            
-            output_dir: document.getElementById('set_output_dir').value,
-            video_resolution: document.getElementById('set_video_resolution').value,
-            video_fps: document.getElementById('set_video_fps').value,
-            video_quality: document.getElementById('set_video_quality').value,
-            transition_style: document.getElementById('set_transition_style').value,
-            caption_style: document.getElementById('set_caption_style').value,
-        };
-        
-        try {
-            const res = await fetch('/api/settings', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            if (res.ok) {
-                closeSettings();
-            } else {
-                alert('Failed to save settings.');
+    <script>
+        async function openSettings() {
+            try {
+                const res = await fetch('/api/settings');
+                const data = await res.json();
+
+                document.getElementById('set_openai_api_key').value = data.openai_api_key || "";
+                document.getElementById('set_openai_base_url').value = data.openai_base_url || "";
+                document.getElementById('set_openai_model').value = data.openai_model || "";
+                document.getElementById('set_openai_reasoning_effort').value = data.openai_reasoning_effort || "";
+
+                document.getElementById('set_gemini_api_key').value = data.gemini_api_key || "";
+                document.getElementById('set_gemini_base_url').value = data.gemini_base_url || "";
+                document.getElementById('set_use_gemini_script').value = (data.use_gemini_script || "true").toLowerCase();
+                document.getElementById('set_gemini_vision_model').value = data.gemini_vision_model || "";
+                document.getElementById('set_gemini_script_model').value = data.gemini_script_model || "";
+
+                document.getElementById('set_deepgram_api_key').value = data.deepgram_api_key || "";
+                document.getElementById('set_pexels_api_key').value = data.pexels_api_key || "";
+                document.getElementById('set_pixabay_api_key').value = data.pixabay_api_key || "";
+
+                document.getElementById('set_output_dir').value = data.output_dir || "out";
+                document.getElementById('set_video_resolution').value = (data.video_resolution || "4k").toLowerCase();
+                document.getElementById('set_video_fps').value = data.video_fps || "60";
+                document.getElementById('set_video_quality').value = (data.video_quality || "final").toLowerCase();
+                document.getElementById('set_transition_style').value = (data.transition_style || "aggressive").toLowerCase();
+                document.getElementById('set_caption_style').value = (data.caption_style || "bold").toLowerCase();
+
+                document.getElementById('settingsModal').style.display = 'flex';
+            } catch (e) {
+                console.error("Failed to load settings", e);
             }
-        } catch(e) {
-            console.error("Failed to save settings", e);
         }
-    }
-</script>
+
+        function closeSettings() {
+            document.getElementById('settingsModal').style.display = 'none';
+        }
+
+        async function saveSettings() {
+            const payload = {
+                openai_api_key: document.getElementById('set_openai_api_key').value,
+                openai_base_url: document.getElementById('set_openai_base_url').value,
+                openai_model: document.getElementById('set_openai_model').value,
+                openai_reasoning_effort: document.getElementById('set_openai_reasoning_effort').value,
+
+                gemini_api_key: document.getElementById('set_gemini_api_key').value,
+                gemini_base_url: document.getElementById('set_gemini_base_url').value,
+                use_gemini_script: document.getElementById('set_use_gemini_script').value,
+                gemini_vision_model: document.getElementById('set_gemini_vision_model').value,
+                gemini_script_model: document.getElementById('set_gemini_script_model').value,
+
+                deepgram_api_key: document.getElementById('set_deepgram_api_key').value,
+                pexels_api_key: document.getElementById('set_pexels_api_key').value,
+                pixabay_api_key: document.getElementById('set_pixabay_api_key').value,
+
+                output_dir: document.getElementById('set_output_dir').value,
+                video_resolution: document.getElementById('set_video_resolution').value,
+                video_fps: document.getElementById('set_video_fps').value,
+                video_quality: document.getElementById('set_video_quality').value,
+                transition_style: document.getElementById('set_transition_style').value,
+                caption_style: document.getElementById('set_caption_style').value,
+            };
+
+            try {
+                const res = await fetch('/api/settings', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (res.ok) {
+                    closeSettings();
+                } else {
+                    alert('Failed to save settings.');
+                }
+            } catch (e) {
+                console.error("Failed to save settings", e);
+            }
+        }
+    </script>
 
 </body>
+
 </html>
