@@ -38,6 +38,7 @@ class Settings:
     openai_model: str
     openai_reasoning_effort: str | None
     gemini_api_key: str | None
+    gemini_base_url: str
     use_gemini_script: bool
     gemini_vision_model: str
     gemini_script_model: str
@@ -60,6 +61,7 @@ class Settings:
             openai_model=os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
             openai_reasoning_effort=os.getenv("OPENAI_REASONING_EFFORT") or None,
             gemini_api_key=os.getenv("GEMINI_API_KEY") or None,
+            gemini_base_url=os.getenv("GEMINI_BASE_URL", "https://generativelanguage.googleapis.com/v1beta/openai/").rstrip("/"),
             use_gemini_script=os.getenv("USE_GEMINI_SCRIPT", "false").lower() in ("true", "1", "yes"),
             gemini_vision_model=os.getenv("GEMINI_VISION_MODEL", "gemini-flash-latest"),
             gemini_script_model=os.getenv("GEMINI_SCRIPT_MODEL", "gemini-2.5-flash"),

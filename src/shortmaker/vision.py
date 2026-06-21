@@ -42,7 +42,7 @@ def extract_frames(video_path: Path, count: int = 3) -> list[str]:
 
 from openai import OpenAI
 
-def analyze_hook(video_path: Path, api_key: str, model_name: str = "gemini-flash-latest") -> str | None:
+def analyze_hook(video_path: Path, api_key: str, model_name: str = "gemini-flash-latest", base_url: str = "https://generativelanguage.googleapis.com/v1beta/openai/") -> str | None:
     """Uses Gemini to analyze the emotional vibe and action of the hook."""
     frame_count = 10
     frames_b64 = extract_frames(video_path, count=frame_count)
@@ -69,7 +69,7 @@ def analyze_hook(video_path: Path, api_key: str, model_name: str = "gemini-flash
         
     client = OpenAI(
         api_key=api_key,
-        base_url="https://generativelanguage.googleapis.com/v1beta/openai/"
+        base_url=base_url
     )
     
     try:
@@ -77,7 +77,7 @@ def analyze_hook(video_path: Path, api_key: str, model_name: str = "gemini-flash
             model=model_name,
             messages=[{"role": "user", "content": content_parts}],
             temperature=0.6,
-            max_tokens=400
+            max_tokens=20000
         )
         return resp.choices[0].message.content.strip()
     except Exception as e:

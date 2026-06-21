@@ -142,7 +142,7 @@ def _call_llm(
 
     if settings.use_gemini_script and settings.gemini_api_key:
         api_key = settings.gemini_api_key
-        base_url = "https://generativelanguage.googleapis.com/v1beta/openai/"
+        base_url = settings.gemini_base_url
         model = settings.gemini_script_model
 
     kwargs: dict[str, Any] = {
@@ -180,7 +180,7 @@ def generate_topic(hook: Hook, settings: Settings) -> str:
 
     if settings.use_gemini_script and settings.gemini_api_key:
         api_key = settings.gemini_api_key
-        base_url = "https://generativelanguage.googleapis.com/v1beta/openai/"
+        base_url = settings.gemini_base_url
         model = settings.gemini_script_model
 
     if not api_key:

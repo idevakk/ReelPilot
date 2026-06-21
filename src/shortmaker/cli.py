@@ -123,7 +123,7 @@ def _make_one_video(
         ai_desc = cache.get_hook_description(chosen_hook.url)
         if not ai_desc:
             with console.status("[bold green]Analyzing hook video with Gemini Vision..."):
-                ai_desc = vision.analyze_hook(hook_path, s.gemini_api_key, s.gemini_vision_model)
+                ai_desc = vision.analyze_hook(hook_path, s.gemini_api_key, s.gemini_vision_model, s.gemini_base_url)
                 if ai_desc:
                     cache.update_hook_description(chosen_hook.url, ai_desc)
         
