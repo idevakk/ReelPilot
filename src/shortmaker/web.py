@@ -76,6 +76,7 @@ class GenerateRequest(BaseModel):
     hook: str
     voice: str = "aura-2-luna-en"
     duration: int = 30
+    engine: str = "intel"
 
 def run_generation(job_id: str, req: GenerateRequest):
     jobs[job_id] = {"status": "running"}
@@ -97,6 +98,7 @@ def run_generation(job_id: str, req: GenerateRequest):
     with open(log_file, "w", encoding="utf-8") as f:
         env = os.environ.copy()
         env["PYTHONIOENCODING"] = "utf-8"
+        env["RENDER_ENGINE"] = req.engine
         process = subprocess.Popen(
             cmd,
             stdout=f,

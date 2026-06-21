@@ -42,6 +42,9 @@
             background: var(--surface);
             border-bottom: 1px solid rgba(255,255,255,0.05);
             flex-shrink: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         header h1 {
@@ -52,6 +55,23 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             letter-spacing: -0.5px;
+        }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .header-controls select {
+            width: auto;
+            padding: 0.5rem 1rem;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 6px;
+            color: white;
+            font-size: 0.9rem;
+            font-weight: 500;
         }
 
         main {
@@ -260,6 +280,13 @@
 
 <header>
     <h1>ShortMaker Studio</h1>
+    <div class="header-controls">
+        <select id="engine">
+            <option value="intel">Intel QuickSync (QSV)</option>
+            <option value="nvidia">NVIDIA NVENC (GPU)</option>
+            <option value="cpu">Software (CPU - libx264)</option>
+        </select>
+    </div>
 </header>
 
 <main>
@@ -377,6 +404,7 @@
         const hook = document.getElementById('hook').value;
         const voice = document.getElementById('voice').value;
         const duration = parseInt(document.getElementById('duration').value, 10);
+        const engine = document.getElementById('engine').value;
 
         const btn = document.getElementById('generateBtn');
         const logs = document.getElementById('logs');
@@ -390,7 +418,7 @@
             const res = await fetch('/api/generate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ topic, hook, voice, duration })
+                body: JSON.stringify({ topic, hook, voice, duration, engine })
             });
             const data = await res.json();
             currentJobId = data.job_id;

@@ -36,18 +36,26 @@ else:
     WIDTH, HEIGHT = 1080, 1920
 FPS = _s.video_fps
 HOOK_TAIL_S = 2.5
+
+if _s.render_engine == "nvidia":
+    _c_v = "h264_nvenc"
+elif _s.render_engine == "cpu":
+    _c_v = "libx264"
+else:
+    _c_v = "h264_qsv"
+
 ENCODE_ARGS: list[str] = [
-    "-c:v", "h264_qsv",
+    "-c:v", _c_v,
     "-preset", "fast",
-    "-global_quality", "20",
-    "-pix_fmt", "nv12",
+    "-global_quality" if _c_v == "h264_qsv" else "-crf", "20",
+    "-pix_fmt", "nv12" if _c_v == "h264_qsv" else "yuv420p",
 ]
 
 ENCODE_ARGS_FINAL: list[str] = [
-    "-c:v", "h264_qsv",
-    "-preset", "slower",
-    "-global_quality", "18",
-    "-pix_fmt", "nv12",
+    "-c:v", _c_v,
+    "-preset", "slower" if _c_v == "h264_qsv" else "slow",
+    "-global_quality" if _c_v == "h264_qsv" else "-crf", "18",
+    "-pix_fmt", "nv12" if _c_v == "h264_qsv" else "yuv420p",
 ]
 
 
