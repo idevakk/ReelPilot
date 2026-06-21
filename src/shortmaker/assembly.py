@@ -38,16 +38,21 @@ FPS = _s.video_fps
 HOOK_TAIL_S = 2.5
 
 ENCODE_ARGS: list[str] = [
-    "-c:v", "libx264",
-    "-preset", "veryfast",
-    "-crf", "20",
+    "-c:v", "h264_nvenc",
+    "-preset", "p4",
+    "-rc", "vbr",
+    "-cq", "20",
+    "-b:v", "0",
     "-pix_fmt", "yuv420p",
 ]
 
 ENCODE_ARGS_FINAL: list[str] = [
-    "-c:v", "libx264",
-    "-preset", "medium",
-    "-crf", "18",
+    "-c:v", "h264_nvenc",
+    "-preset", "p7",
+    "-tune", "hq",
+    "-rc", "vbr",
+    "-cq", "18",
+    "-b:v", "0",
     "-pix_fmt", "yuv420p",
 ]
 
