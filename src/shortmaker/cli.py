@@ -173,7 +173,7 @@ def _make_one_video(
             target_seconds=script_obj.target_duration,
         )
         cost = tts.estimate_cost_usd(script_obj.full_narration)
-    console.print(f"[dim]Voiceover: {voice_dur:.1f}s (est. ${cost:.4f} Deepgram)")
+    console.print(f"[dim]Voiceover: {voice_dur:.1f}ms (est. ${cost:.4f} Deepgram)")
 
     # ── STT for word timings ──
     if s.deepgram_api_key:
@@ -230,6 +230,7 @@ def _make_one_video(
         )
 
     # ── Sidecar + summary ──
+    total_cost = script_obj.estimated_cost_usd + cost
     attributions = {
         "B-roll": "Pexels" if s.pexels_api_key else "cached/fallback",
         "Music": "Pixabay" if s.pixabay_api_key else ("local library" if music_path.parent.name == "library" else "fallback tone"),
@@ -237,6 +238,13 @@ def _make_one_video(
         "Script": f"{s.openai_model} via OpenAI-compatible API" if s.openai_api_key else "template fallback",
         "Transitions": "xfade (energy-aware)",
         "Effects": "Ken Burns varied + vignette",
+        "--- Metrics ---": "-------------------------",
+        "Total Time Taken": _elapsed(t0),
+        "LLM Prompt Tokens": str(script_obj.prompt_tokens),
+        "LLM Completion Tokens": str(script_obj.completion_tokens),
+        "LLM Estimated Cost": f"${script_obj.estimated_cost_usd:.4f}",
+        "Deepgram Voice Cost": f"${cost:.4f}",
+        "Total Pipeline Cost": f"${total_cost:.4f}",
     }
     sidecar = assembly.write_sidecar(out_path, script_obj, captions_obj, attributions)
 

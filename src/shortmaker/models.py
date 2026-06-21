@@ -36,6 +36,11 @@ class Script(BaseModel):
     topic: str
     hook_name: str
     beats: list[Beat]
+    
+    # Tracking metrics
+    prompt_tokens: int = 0
+    completion_tokens: int = 0
+    estimated_cost_usd: float = 0.0
 
     @property
     def full_narration(self) -> str:

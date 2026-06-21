@@ -133,7 +133,7 @@ def _call_llm(
     hook_name: str,
     hook_desc: str,
     settings: Settings,
-) -> str:
+) -> tuple[str, int, int]:
     from openai import OpenAI
 
     api_key = settings.openai_api_key
@@ -168,7 +168,11 @@ def _call_llm(
 
     client = OpenAI(api_key=api_key, base_url=base_url)
     resp = client.chat.completions.create(**kwargs)
-    return resp.choices[0].message.content or "{}"
+    
+    prompt_tokens = resp.usage.prompt_tokens if resp.usage else 0
+    completion_tokens = resp.usage.completion_tokens if resp.usage else 0
+    
+    return resp.choices[0].message.content or "{}", prompt_tokens, completion_tokens
 
 
 def generate_topic(hook: Hook, settings: Settings) -> str:
@@ -339,10 +343,21 @@ def generate(
     last_raw: str = ""
     for _ in range(retries + 1):
         try:
-            raw = _call_llm(topic, hook_name, hook_desc, settings)
+            raw, p_tok, c_tok = _call_llm(topic, hook_name, hook_desc, settings)
             data = _parse_payload(raw)
             beats = [Beat(**b) for b in data["beats"]]
-            return Script(topic=topic, hook_name=hook_name, beats=beats)
+            
+            # Simple OpenAI standard estimation: $0.15/1M input, $0.60/1M output for gpt-4o-mini
+            cost = (p_tok * 0.15 + c_tok * 0.60) / 1000000.0
+            
+            return Script(
+                topic=topic, 
+                hook_name=hook_name, 
+                beats=beats,
+                prompt_tokens=p_tok,
+                completion_tokens=c_tok,
+                estimated_cost_usd=cost
+            )
         except (ValidationError, KeyError, json.JSONDecodeError) as exc:
             last_err = exc
             last_raw = locals().get("raw", last_raw)
