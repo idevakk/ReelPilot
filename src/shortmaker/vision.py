@@ -42,7 +42,8 @@ def extract_frames(video_path: Path, count: int = 3) -> list[str]:
 
 def analyze_hook(video_path: Path, api_key: str) -> str | None:
     """Uses Gemini to analyze the emotional vibe and action of the hook."""
-    frames_b64 = extract_frames(video_path, count=3)
+    frame_count = 10
+    frames_b64 = extract_frames(video_path, count=frame_count)
     if not frames_b64:
         return None
         
@@ -58,11 +59,14 @@ def analyze_hook(video_path: Path, api_key: str) -> str | None:
         })
         
     prompt = (
-        "You are a viral TikTok hook analyzer. These 3 frames are taken chronologically "
-        "from a short, looping viral video hook.\n"
-        "1. Describe exactly what physical action is happening.\n"
-        "2. What is the emotional vibe or surprise element?\n"
-        "3. Provide exactly ONE short paragraph. Be highly descriptive and punchy. No intros/outros."
+        f"You are a master storyteller and video analyst. These {frame_count} frames are taken "
+        "chronologically from a viral video clip.\n"
+        "I need a hyper-detailed, vivid, and emotionally rich description of exactly what happens in this clip.\n"
+        "Include the exact physical actions, facial expressions, the setting, and the core surprise or 'shock value' "
+        "that makes it viral.\n"
+        "Do NOT write a single sentence. Write a full, highly descriptive paragraph (3-5 sentences) packed with context "
+        "so that a writer who cannot see the video can perfectly visualize it and write an engaging story around it.\n"
+        "Provide ONLY the description with no intro, outro, or meta-commentary."
     )
     parts.append({"text": prompt})
     
@@ -71,8 +75,8 @@ def analyze_hook(video_path: Path, api_key: str) -> str | None:
             "parts": parts
         }],
         "generationConfig": {
-            "temperature": 0.5,
-            "maxOutputTokens": 200
+            "temperature": 0.6,
+            "maxOutputTokens": 400
         }
     }
     
