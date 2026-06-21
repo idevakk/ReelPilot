@@ -3,6 +3,7 @@ import os
 import time
 import subprocess
 import json
+import sys
 from pathlib import Path
 from fastapi import FastAPI, Request, BackgroundTasks
 from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
@@ -81,7 +82,7 @@ def run_generation(job_id: str, req: GenerateRequest):
     
     # Run the shortmaker CLI module as a subprocess so we can capture output
     cmd = [
-        "python", "-m", "shortmaker"
+        sys.executable, "-m", "shortmaker"
     ]
     if req.topic and req.topic.strip():
         cmd.append(req.topic.strip())
