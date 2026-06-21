@@ -226,8 +226,8 @@
         <h2>Create New Video</h2>
         
         <div class="form-group">
-            <label for="topic">Topic</label>
-            <input type="text" id="topic" placeholder="e.g. AI is taking over coding">
+            <label for="topic">Topic (Optional)</label>
+            <input type="text" id="topic" placeholder="e.g. AI is taking over coding (Leave empty for Auto Mode)">
         </div>
         
         <div class="form-group">
@@ -311,11 +311,6 @@
         const topic = document.getElementById('topic').value;
         const hook = document.getElementById('hook').value;
         const voice = document.getElementById('voice').value;
-        
-        if (!topic.trim()) {
-            alert('Please enter a topic!');
-            return;
-        }
 
         const btn = document.getElementById('generateBtn');
         const logs = document.getElementById('logs');

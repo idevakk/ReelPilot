@@ -71,7 +71,7 @@ async def list_videos():
     return {"videos": videos}
 
 class GenerateRequest(BaseModel):
-    topic: str
+    topic: str | None = None
     hook: str
     voice: str = "aura-2-luna-en"
 
@@ -81,11 +81,15 @@ def run_generation(job_id: str, req: GenerateRequest):
     
     # Run the shortmaker CLI module as a subprocess so we can capture output
     cmd = [
-        "python", "-m", "shortmaker",
-        req.topic,
+        "python", "-m", "shortmaker"
+    ]
+    if req.topic and req.topic.strip():
+        cmd.append(req.topic.strip())
+        
+    cmd.extend([
         "--hook", req.hook,
         "--voice", req.voice
-    ]
+    ])
     
     with open(log_file, "w", encoding="utf-8") as f:
         process = subprocess.Popen(
