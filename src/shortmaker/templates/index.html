@@ -391,7 +391,7 @@
                 const card = document.createElement('div');
                 card.className = 'video-card';
                 card.innerHTML = `
-                    <video src="${v.url}" controls preload="metadata"></video>
+                    <video data-src="${v.url}" controls preload="none"></video>
                     <div class="video-info">
                         <div class="video-title" title="${v.id}">${v.id.replace(/_\d+$/, '')}</div>
                         <div class="video-meta">${date}</div>
@@ -406,8 +406,25 @@
                 `;
                 gallery.appendChild(card);
             });
+
+            // Lazy load video metadata to prevent network connection exhaustion
+            const videoObserver = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const video = entry.target;
+                        video.src = video.dataset.src;
+                        video.preload = "metadata";
+                        observer.unobserve(video);
+                    }
+                });
+            }, { rootMargin: '100px' });
+
+            document.querySelectorAll('video[data-src]').forEach(video => {
+                videoObserver.observe(video);
+            });
+
         } catch (e) {
-            console.error("Failed to load videos");
+            console.error("Failed to load videos", e);
         }
     }
 
