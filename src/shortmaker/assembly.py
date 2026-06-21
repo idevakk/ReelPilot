@@ -182,7 +182,7 @@ def mix_audio(voice: Path, music: Path, total_dur: float,
     sidechain for cleaner ducking.
     """
     filter_complex = (
-        "[0:a]volume=2.5[voice];"
+        "[0:a]loudnorm=I=-14:LRA=11:TP=-1.5[voice];"
         f"[1:a]atrim=0:{total_dur},"
         f"volume=0.40[mus];"
         f"[mus][voice]sidechaincompress=threshold=0.04:ratio=10:"

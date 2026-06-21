@@ -17,7 +17,7 @@ import requests
 
 from .audio import write_silence_wav
 
-DEEPGRAM_TTS_URL = "https://api.deepgram.com/v1/speak?model={model}"
+DEEPGRAM_TTS_URL = "https://api.deepgram.com/v1/speak?model={model}&encoding=linear16&sample_rate=48000"
 
 DEFAULT_VOICE = "aura-2-luna-en"
 
