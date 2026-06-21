@@ -125,10 +125,11 @@ def trim_hook(hook_path: Path, dest: Path,
 def normalize_clip(src: Path, dest: Path, target_dur: float,
                    motion: str | None = None,
                    speed: str = "normal") -> Path:
-    """Scale + crop + Ken Burns (varied motion) + optional speed ramp."""
-    vf = effects.normalize_filter(target_dur, motion=motion, speed=speed)
+    """Scale + crop + Ken Burns (images only) + optional speed ramp."""
+    is_image = str(src).lower().endswith((".jpg", ".jpeg", ".png"))
+    vf = effects.normalize_filter(target_dur, motion=motion, speed=speed, is_image=is_image)
     cmd = ["ffmpeg", "-y"]
-    if str(src).lower().endswith((".jpg", ".jpeg", ".png")):
+    if is_image:
         cmd += ["-loop", "1"]
     cmd += [
         "-i", str(src),

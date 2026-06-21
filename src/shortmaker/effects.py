@@ -124,13 +124,16 @@ def ken_burns_filter(target_dur: float,
 
 def normalize_filter(target_dur: float,
                      motion: str | None = None,
-                     speed: str = "normal") -> str:
-    """Full per-clip normalization: scale → crop → Ken Burns [→ speed ramp]."""
+                     speed: str = "normal",
+                     is_image: bool = False) -> str:
+    """Full per-clip normalization: scale → crop → Ken Burns (images only) [→ speed ramp]."""
     parts = [
         f"scale={WIDTH}:{HEIGHT}:force_original_aspect_ratio=increase",
         f"crop={WIDTH}:{HEIGHT}",
-        ken_burns_filter(target_dur, motion),
     ]
+    if is_image:
+        parts.append(ken_burns_filter(target_dur, motion))
+        
     sp = speed_filter(speed)
     if sp:
         parts.append(sp)
