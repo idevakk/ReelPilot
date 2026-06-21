@@ -18,12 +18,16 @@ app = FastAPI(title="ShortMaker Web UI")
 # Make sure output directory exists
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
-# Mount the static output directory to serve videos
-app.mount("/out", StaticFiles(directory=str(OUTPUT_DIR)), name="out")
-
 # We need a template directory
 TEMPLATES_DIR = Path(__file__).parent / "templates"
 TEMPLATES_DIR.mkdir(parents=True, exist_ok=True)
+
+# Mount the static output directory to serve videos
+app.mount("/out", StaticFiles(directory=str(OUTPUT_DIR)), name="out")
+
+# Mount the music library to serve audio for playback
+MUSIC_LIBRARY_DIR.mkdir(parents=True, exist_ok=True)
+app.mount("/music", StaticFiles(directory=str(MUSIC_LIBRARY_DIR)), name="music")
 
 JOBS_DIR = OUTPUT_DIR / "_jobs"
 JOBS_DIR.mkdir(parents=True, exist_ok=True)
