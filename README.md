@@ -1,70 +1,94 @@
-# shortmaker
+<div align="center">
+  <img src="assets/static/favicon.png" alt="ShortMaker Logo" width="120" />
+</div>
 
-Automated 9:16 short-form video generator. Pick a topic and a Malloy transitional hook, get a TikTok-ready MP4 with animated captions, B-roll, voiceover, and ducked background music.
+<h1 align="center">ShortMaker Studio</h1>
 
-## Stack
+<p align="center">
+  <strong>An automated, AI-powered 9:16 short-form video generator with a sleek Web UI.</strong><br>
+  Generate TikTok, YouTube Shorts, and Instagram Reels instantly using LLMs, Deepgram Aura voiceovers, and Pexels b-roll.
+</p>
 
-| Stage | Provider |
-|---|---|
-| Script writer | OpenAI-compatible chat-completions endpoint (configurable) |
-| Voiceover | Deepgram Aura TTS |
-| B-roll | Pexels Videos API (portrait 9:16) |
-| Music | Pixabay Music API (with bundled tone fallback) |
-| Word timings | faster-whisper (`small` int8, CPU) |
-| Captions | ASS, TikTok pop-on style |
-| Assembly | FFmpeg (subprocess) |
+## 🚀 Features
 
-## Install
+- **Sleek Web Dashboard:** A dark-themed, responsive web interface for managing your creations, local music library, and video generation.
+- **AI Scripting:** Powered by OpenAI/Gemini models to generate high-retention scripts with dynamic pacing and hooks.
+- **Cinematic Hooks:** Automatically fetches and integrates high-retention visual hooks (via Malloy hooks).
+- **Pro Voiceovers:** Uses Deepgram Aura TTS for incredibly realistic, human-like narration.
+- **Dynamic B-Roll & Fallbacks:** Uses Pexels Videos API to fetch highly relevant 9:16 vertical b-roll. Falls back to static images with beautiful *Ken Burns* motion effects when videos aren't available.
+- **Hardware-Accelerated Rendering:** Lightning-fast FFmpeg pipeline utilizing NVIDIA (NVENC) or Intel (QSV) hardware acceleration.
+- **Local Music Library:** Upload your own BGM or let the AI automatically pick from the Pixabay Music API.
+- **Auto-Pilot Mode:** Provide absolutely no input, and the AI will brainstorm a topic, pick a hook, and generate a video completely autonomously.
+- **Pop-On Captions:** Automatically generated, word-level timed ASS subtitles using `faster-whisper`.
+
+## 📦 Installation
 
 ```powershell
+# 1. Install ffmpeg (required for rendering)
 scoop install ffmpeg   # or choco install ffmpeg
+
+# 2. Clone the repo
+git clone https://github.com/yourusername/shortmaker-studio.git
+cd shortmaker-studio
+
+# 3. Create a virtual environment and install dependencies
 uv venv
 uv pip install -e ".[dev]"
-copy .env.example .env   # fill in API keys
+
+# 4. Set up environment variables
+copy .env.example .env
 ```
 
-## Run
+## 🔑 Environment Setup
+
+Edit your `.env` file and add your API keys:
+
+- `OPENAI_API_KEY` — Script + rerank endpoint
+- `GEMINI_API_KEY` — (Optional) Gemini API endpoint for native script writing
+- `DEEPGRAM_API_KEY` — Aura TTS for voiceovers
+- `PEXELS_API_KEY` — B-roll videos and images
+- `PIXABAY_API_KEY` — Background music (Optional, you can upload your own to the Web UI)
+
+## 🖥️ Usage
+
+### Web UI (Recommended)
+
+Start the interactive web dashboard:
 
 ```powershell
-python -m shortmaker "POV: you finally understood async Python" --hook snowball-splash
-python -m shortmaker "the trick to focus" --hook auto
+python -m shortmaker --web
+```
+Navigate to `http://localhost:8000` to access the sleek ShortMaker Studio UI!
+
+### Command Line Interface
+
+You can also use the powerful CLI for automation or batch generation:
+
+```powershell
+# Auto-Pilot Mode (Random topic & hook)
+python -m shortmaker
+
+# Batch Auto-Pilot Mode (Generate 5 random videos)
+python -m shortmaker --count 5
+
+# Specific Topic
+python -m shortmaker "POV: you finally understood async Python" --hook auto --voice aura-orion-en
+
+# Force specific background music
+python -m shortmaker "The best productivity hack" --bgm lofi-chill.mp3
 ```
 
-Optional flags: `--voice aura-orion-en`, `--out path/to/out.mp4`, `--force`.
+## 📂 Project Structure
 
-## Environment variables
+- `src/shortmaker/web.py` — FastAPI web server and UI routes
+- `src/shortmaker/cli.py` — Typer CLI entrypoint and pipeline orchestrator
+- `src/shortmaker/assembly.py` — Hardware-accelerated FFmpeg pipeline
+- `src/shortmaker/broll.py` — Pexels video & image fallback engine
+- `src/shortmaker/effects.py` — Ken Burns effects, color grading, scaling
+- `src/shortmaker/script.py` — LLM prompting and beat structuring
 
-- `OPENAI_API_KEY`, `OPENAI_BASE_URL`, `OPENAI_MODEL` — script + rerank endpoint
-- `OPENAI_REASONING_EFFORT` — configures the reasoning budget for supported OpenAI models (e.g., `low`, `medium`, `high`)
-- `GEMINI_API_KEY`, `GEMINI_BASE_URL` — Gemini API endpoint for vision analysis and native script writing
-- `USE_GEMINI_SCRIPT` — Set to `true` to use Gemini directly for script generation instead of the default OpenAI endpoint
-- `GEMINI_VISION_MODEL`, `GEMINI_SCRIPT_MODEL` — Customizable Gemini models
-- `DEEPGRAM_API_KEY` — Aura TTS
-- `PEXELS_API_KEY` — B-roll
-- `PIXABAY_API_KEY` — background music (optional; otherwise a synthesized tone is used)
-- `OUTPUT_DIR` — default `out/`
+## 📄 License
 
-## Layout
+MIT License.
 
-```
-src/shortmaker/
-  cli.py         typer entry point
-  config.py      env + paths
-  hooks.py       Malloy catalog + cache
-  matcher.py     keyword score + LLM rerank
-  script.py      OpenAI-compatible script writer (+ template fallback)
-  tts.py         Deepgram Aura
-  stt.py         faster-whisper word timings
-  broll.py       Pexels search/download
-  music.py       Pixabay music (+ offline fallback)
-  captions.py    ASS builder
-  assembly.py    FFmpeg pipeline -> final MP4
-scripts/fetch_hooks.py   downloads every Malloy hook once
-tests/                   smoke tests
-```
-
-## Notes
-
-- 4 GB VRAM: faster-whisper runs on CPU by default; Ollama is not used (script generation goes to your OpenAI-compatible endpoint).
-- Malloy hooks are free to use commercially per their page; `assets/hooks/LICENSE-malloy.txt` is created on first download.
-- Attribution sidecar (`<slug>.txt`) is written next to every output MP4 with Pexels/Pixabay credits.
+*Note: Malloy hooks downloaded into `assets/hooks` are free to use commercially per their respective licensing. An attribution sidecar (`<slug>.txt`) is automatically written next to every output MP4 with full Pexels/Pixabay credits.*
