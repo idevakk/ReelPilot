@@ -145,10 +145,9 @@ def _call_llm(
         base_url = "https://generativelanguage.googleapis.com/v1beta/openai/"
         model = settings.gemini_script_model
 
-    client = OpenAI(api_key=api_key, base_url=base_url)
-    resp = client.chat.completions.create(
-        model=model,
-        messages=[
+    kwargs: dict[str, Any] = {
+        "model": model,
+        "messages": [
             {"role": "system", "content": SYSTEM_PROMPT},
             {
                 "role": "user",
@@ -157,10 +156,18 @@ def _call_llm(
                 ),
             },
         ],
-        response_format={"type": "json_object"},
-        max_tokens=20000,
-        temperature=0.85,
-    )
+        "response_format": {"type": "json_object"},
+        "max_tokens": 20000,
+        "temperature": 0.85,
+    }
+    if settings.openai_reasoning_effort and not settings.use_gemini_script:
+        # Some providers want it native, some in extra_body
+        kwargs["extra_body"] = {"reasoning_effort": settings.openai_reasoning_effort}
+        # We also pass it natively in case the client supports it
+        kwargs["reasoning_effort"] = settings.openai_reasoning_effort
+
+    client = OpenAI(api_key=api_key, base_url=base_url)
+    resp = client.chat.completions.create(**kwargs)
     return resp.choices[0].message.content or "{}"
 
 
@@ -193,12 +200,17 @@ def generate_topic(hook: Hook, settings: Settings) -> str:
         seeds=seeds_text,
     )
     try:
-        resp = client.chat.completions.create(
-            model=model,
-            messages=[{"role": "user", "content": prompt}],
-            max_tokens=20000,
-            temperature=0.95,
-        )
+        kwargs: dict[str, Any] = {
+            "model": model,
+            "messages": [{"role": "user", "content": prompt}],
+            "max_tokens": 20000,
+            "temperature": 0.95,
+        }
+        if settings.openai_reasoning_effort and not settings.use_gemini_script:
+            kwargs["extra_body"] = {"reasoning_effort": settings.openai_reasoning_effort}
+            kwargs["reasoning_effort"] = settings.openai_reasoning_effort
+
+        resp = client.chat.completions.create(**kwargs)
         text = (resp.choices[0].message.content or "").strip()
         # Strip thinking blocks from the topic response too
         text = _strip_think(text).strip().strip("\"'")
