@@ -106,10 +106,6 @@ def _make_one_video(
         with console.status("[bold green]Picking random hook..."):
             chosen_hook = hooks.random_hook()
         console.print(f"[cyan]Hook:[/cyan] {chosen_hook.name} ({chosen_hook.description})")
-
-        with console.status("[bold green]Generating viral topic..."):
-            topic = script.generate_topic(chosen_hook, s)
-        console.print(f"[cyan]Topic:[/cyan] {topic}")
     else:
         # MANUAL MODE: user-provided topic
         with console.status("[bold green]Picking hook..."):
@@ -120,12 +116,34 @@ def _make_one_video(
         hook_path = hooks.ensure(chosen_hook, force=force_redownload)
     console.print(f"[dim]Hook cached at {hook_path}[/dim] ({_elapsed(t0)})")
 
+    # ── AI Vision Context ──
+    from . import cache, vision
+    hook_desc = chosen_hook.description
+    if s.gemini_api_key:
+        ai_desc = cache.get_hook_description(chosen_hook.url)
+        if not ai_desc:
+            with console.status("[bold green]Analyzing hook video with Gemini Vision..."):
+                ai_desc = vision.analyze_hook(hook_path, s.gemini_api_key)
+                if ai_desc:
+                    cache.update_hook_description(chosen_hook.url, ai_desc)
+        
+        if ai_desc:
+            console.print(f"[dim]AI Context: {ai_desc}[/dim]")
+            hook_desc = ai_desc
+            # Update the hook object so generate_topic can use it
+            chosen_hook.description = ai_desc
+
+    if topic is None:
+        with console.status("[bold green]Generating viral topic..."):
+            topic = script.generate_topic(chosen_hook, s)
+        console.print(f"[cyan]Topic:[/cyan] {topic}")
+
     # ── Script ──
     with console.status("[bold green]Writing viral script..."):
         script_obj: ScriptModel = script.generate(
             topic=topic,
             hook_name=chosen_hook.name,
-            hook_desc=chosen_hook.description,
+            hook_desc=hook_desc,
             settings=s,
         )
     console.print(

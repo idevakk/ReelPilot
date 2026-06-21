@@ -76,9 +76,14 @@ def _init_tables(conn: sqlite3.Connection) -> None:
             id          INTEGER PRIMARY KEY AUTOINCREMENT,
             url         TEXT    NOT NULL UNIQUE,
             file_path   TEXT,
+            ai_description TEXT,
             created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
     """)
+    try:
+        conn.execute("ALTER TABLE hooks ADD COLUMN ai_description TEXT")
+    except sqlite3.OperationalError:
+        pass
     conn.commit()
 
 
@@ -124,6 +129,16 @@ def get_hook_path(url: str) -> Path | None:
 def update_hook_path(url: str, path: Path) -> None:
     conn = _conn()
     conn.execute("UPDATE hooks SET file_path = ? WHERE url = ?", (str(path), url))
+    conn.commit()
+
+def get_hook_description(url: str) -> str | None:
+    conn = _conn()
+    row = conn.execute("SELECT ai_description FROM hooks WHERE url = ?", (url,)).fetchone()
+    return row["ai_description"] if row else None
+
+def update_hook_description(url: str, description: str) -> None:
+    conn = _conn()
+    conn.execute("UPDATE hooks SET ai_description = ? WHERE url = ?", (description, url))
     conn.commit()
 
 
