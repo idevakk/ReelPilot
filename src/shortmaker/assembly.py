@@ -79,7 +79,8 @@ def trim_hook(hook_path: Path, dest: Path,
         "-i", str(hook_path),
         "-vf", (
             f"scale={WIDTH}:{HEIGHT}:force_original_aspect_ratio=increase,"
-            f"crop={WIDTH}:{HEIGHT}"
+            f"crop={WIDTH}:{HEIGHT},"
+            f"fps={FPS}"
         ),
         "-t", str(eff),
         "-an",
