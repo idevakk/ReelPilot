@@ -102,13 +102,7 @@ def build(
             f"Dialogue: 0,{_fmt_time(start)},{_fmt_time(cue.end)},{style},,0,0,0,,{text}\n"
         )
 
-    # ── Phrase-level line cues ──
-    for i in range(0, len(cues), line_break_every):
-        chunk = cues[i: i + line_break_every]
-        text = " ".join(c.word for c in chunk).replace("\\", " ").replace("\n", " ")
-        lines.append(
-            f"Dialogue: 1,{_fmt_time(chunk[0].start)},{_fmt_time(chunk[-1].end)},Line,,0,0,0,,{text}\n"
-        )
+    # ── Phrase-level line cues removed to prevent static background text ──
 
     out_path.write_text("".join(lines), encoding="utf-8")
     return out_path
