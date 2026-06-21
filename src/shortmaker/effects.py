@@ -9,8 +9,16 @@ from __future__ import annotations
 
 import random
 
-WIDTH, HEIGHT = 1080, 1920
-FPS = 30
+from .config import settings
+
+_s = settings()
+if _s.video_resolution == "8k":
+    WIDTH, HEIGHT = 4320, 7680
+elif _s.video_resolution == "4k":
+    WIDTH, HEIGHT = 2160, 3840
+else:
+    WIDTH, HEIGHT = 1080, 1920
+FPS = _s.video_fps
 
 # ── transition pools keyed by energy ──────────────────────────────────────
 

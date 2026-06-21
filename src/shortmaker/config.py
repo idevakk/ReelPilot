@@ -39,6 +39,8 @@ class Settings:
 
     # ── v2 quality knobs ──
     video_quality: str       # "draft" (fast) | "final" (slow, max quality)
+    video_resolution: str    # "1080p", "4k", "8k"
+    video_fps: int           # 30, 60
     transition_style: str    # "aggressive" (fast cuts) | "smooth" (longer fades)
     caption_style: str       # "minimal" | "bold" | "animated"
 
@@ -52,6 +54,8 @@ class Settings:
             openai_base_url=os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1").rstrip("/"),
             openai_model=os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
             video_quality=os.getenv("VIDEO_QUALITY", "final"),
+            video_resolution=os.getenv("VIDEO_RESOLUTION", "4k").lower(),
+            video_fps=int(os.getenv("VIDEO_FPS", "60")),
             transition_style=os.getenv("TRANSITION_STYLE", "aggressive"),
             caption_style=os.getenv("CAPTION_STYLE", "bold"),
         )

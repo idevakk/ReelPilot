@@ -16,20 +16,33 @@ from .models import Beat, Captions, WordCue
 
 # ─── ASS header ──────────────────────────────────────────────────────────
 
-ASS_HEADER = """\
+from .config import settings
+
+def get_ass_header() -> str:
+    s = settings()
+    if s.video_resolution == "8k":
+        res_x, res_y = 4320, 7680
+        scale = 4
+    elif s.video_resolution == "4k":
+        res_x, res_y = 2160, 3840
+        scale = 2
+    else:
+        res_x, res_y = 1080, 1920
+        scale = 1
+        
+    return f"""\
 [Script Info]
 Title: shortmaker
 ScriptType: v4.00+
 WrapStyle: 0
 ScaledBorderAndShadow: yes
-PlayResX: 1080
-PlayResY: 1920
+PlayResX: {res_x}
+PlayResY: {res_y}
 
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: Pop,Montserrat Black,84,&H00FFFFFF,&H000000FF,&H00000000,&H96000000,-1,0,0,0,100,100,0,0,1,6,3,2,60,60,260,1
-Style: PopKey,Montserrat Black,88,&H0000DDFF,&H000000FF,&H00000000,&H96000000,-1,0,0,0,100,100,0,0,1,6,3,2,60,60,260,1
-Style: Line,Montserrat Black,62,&H00FFFFFF,&H000000FF,&H00000000,&H96000000,-1,0,0,0,100,100,0,0,1,5,2,2,60,60,340,1
+Style: Pop,Montserrat Black,{84 * scale},&H00FFFFFF,&H000000FF,&H00000000,&H96000000,-1,0,0,0,100,100,0,0,1,{6 * scale},{3 * scale},2,{60 * scale},{60 * scale},{260 * scale},1
+Style: PopKey,Montserrat Black,{88 * scale},&H0000DDFF,&H000000FF,&H00000000,&H96000000,-1,0,0,0,100,100,0,0,1,{6 * scale},{3 * scale},2,{60 * scale},{60 * scale},{260 * scale},1
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
@@ -77,7 +90,7 @@ def build(
     ``caption_emphasis`` list are rendered with the ``PopKey`` style
     (yellow, slightly larger) for visual punch.
     """
-    lines: list[str] = [ASS_HEADER]
+    lines: list[str] = [get_ass_header()]
 
     cues = captions.cues
     if not cues:
