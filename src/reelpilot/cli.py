@@ -320,6 +320,10 @@ def main(
         False, "--web", "-w",
         help="Start the interactive web dashboard.",
     ),
+    is_mashup: bool = typer.Option(
+        False, "--mashup",
+        help="Generate a random hook mashup reel instead of an AI script reel.",
+    ),
 ) -> None:
     """Generate viral 9:16 short MP4s.
 
@@ -366,6 +370,17 @@ def main(
         return
 
     # ── Video generation ──
+    if is_mashup:
+        from .mashup import run_mashup
+        console.print(f"[bold magenta]*** Hook Mashup mode - generating {count} clips[/bold magenta]")
+        out_path = run_mashup(count=count, output_path=out)
+        console.print(Panel.fit(
+            f"[bold green]Mashup complete[/bold green]\n"
+            f"Video: {out_path}",
+            border_style="green",
+        ))
+        return
+
     if topic is None:
         console.print(f"[bold magenta]*** Auto-pilot mode - generating {count} video(s)[/bold magenta]")
 

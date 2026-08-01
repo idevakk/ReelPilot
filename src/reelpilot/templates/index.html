@@ -442,6 +442,17 @@
         <div class="panel">
             <h2>Create New Video</h2>
 
+            <div class="form-group" style="display: flex; gap: 10px; margin-bottom: 20px;">
+                <label style="display: flex; align-items: center; gap: 5px;">
+                    <input type="radio" name="videoMode" value="ai" checked onchange="toggleMode()"> AI Script
+                </label>
+                <label style="display: flex; align-items: center; gap: 5px;">
+                    <input type="radio" name="videoMode" value="mashup" onchange="toggleMode()"> Hook Mashup
+                </label>
+            </div>
+
+            <div id="aiSettings">
+
             <div class="form-group">
                 <label for="topic">Topic (Optional)</label>
                 <input type="text" id="topic" placeholder="e.g. AI is taking over coding (Leave empty for Auto Mode)">
@@ -475,6 +486,15 @@
                     <option value="auto">Auto (Pixabay / Random)</option>
                     <!-- Music injected here via JS -->
                 </select>
+            </div>
+            </div> <!-- end aiSettings -->
+
+            <div id="mashupSettings" style="display: none;">
+                <div class="form-group">
+                    <label for="mashupCount">Number of Hooks (<span id="mashupCountLabel">3</span>)</label>
+                    <input type="range" id="mashupCount" min="2" max="10" value="3"
+                        oninput="document.getElementById('mashupCountLabel').innerText = this.value">
+                </div>
             </div>
 
             <button id="generateBtn" onclick="generateVideo()">Generate Masterpiece</button>
@@ -596,13 +616,21 @@
             }
         }
 
+        function toggleMode() {
+            const isMashup = document.querySelector('input[name="videoMode"]:checked').value === 'mashup';
+            document.getElementById('aiSettings').style.display = isMashup ? 'none' : 'block';
+            document.getElementById('mashupSettings').style.display = isMashup ? 'block' : 'none';
+        }
+
         async function generateVideo() {
+            const mode = document.querySelector('input[name="videoMode"]:checked').value;
             const topic = document.getElementById('topic').value;
             const hook = document.getElementById('hook').value;
             const voice = document.getElementById('voice').value;
             const duration = parseInt(document.getElementById('duration').value, 10);
             const engine = document.getElementById('engine').value;
             const bgm = document.getElementById('bgm').value;
+            const count = parseInt(document.getElementById('mashupCount').value, 10);
 
             const btn = document.getElementById('generateBtn');
             const logs = document.getElementById('logs');
@@ -613,11 +641,20 @@
             logs.innerText = 'Connecting to generation engine...';
 
             try {
-                const res = await fetch('/api/generate', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ topic, hook, voice, duration, engine, bgm })
-                });
+                let res;
+                if (mode === 'mashup') {
+                    res = await fetch('/api/mashup', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ count, engine })
+                    });
+                } else {
+                    res = await fetch('/api/generate', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ topic, hook, voice, duration, engine, bgm })
+                    });
+                }
                 const data = await res.json();
                 currentJobId = data.job_id;
 

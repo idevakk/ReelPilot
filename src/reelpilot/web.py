@@ -164,6 +164,48 @@ async def generate_video(req: GenerateRequest, bg_tasks: BackgroundTasks):
     bg_tasks.add_task(run_generation, job_id, req)
     return {"job_id": job_id}
 
+class MashupRequest(BaseModel):
+    count: int = 3
+    engine: str = "intel"
+
+def run_mashup_job(job_id: str, req: MashupRequest):
+    jobs[job_id] = {"status": "running"}
+    log_file = JOBS_DIR / f"{job_id}.log"
+    
+    cmd = [
+        sys.executable, "-m", "reelpilot",
+        "--mashup",
+        "--count", str(req.count)
+    ]
+    
+    with open(log_file, "w", encoding="utf-8") as f:
+        env = os.environ.copy()
+        env["PYTHONIOENCODING"] = "utf-8"
+        env["RENDER_ENGINE"] = req.engine
+        process = subprocess.Popen(
+            cmd,
+            stdout=f,
+            stderr=subprocess.STDOUT,
+            text=True,
+            env=env
+        )
+        process.wait()
+        
+    if process.returncode == 0:
+        jobs[job_id]["status"] = "completed"
+    else:
+        jobs[job_id]["status"] = "failed"
+
+@app.post("/api/mashup")
+async def generate_mashup_endpoint(req: MashupRequest, bg_tasks: BackgroundTasks):
+    job_id = f"job_{int(time.time())}"
+    
+    log_file = JOBS_DIR / f"{job_id}.log"
+    log_file.write_text("Starting mashup generation...\n", encoding="utf-8")
+    
+    bg_tasks.add_task(run_mashup_job, job_id, req)
+    return {"job_id": job_id}
+
 @app.get("/api/jobs/{job_id}")
 async def get_job_status(job_id: str):
     log_file = JOBS_DIR / f"{job_id}.log"
